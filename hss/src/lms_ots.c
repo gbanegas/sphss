@@ -8,15 +8,7 @@
 #include "lms_ots.h"
 
 void gen_private_key(lmots_private_key *private_key) {
-	private_key->remain_sign = 1;
-	/*uint8_t S[20] = { 0x13, 0xa3, 0x70, 0xf1, 0x53, 0xeb, 0x41, 0x87, 0xc9,
-	 0x80, 0x41, 0xb7, 0x75, 0xd8, 0x71, 0x9d, 0xfd, 0xfa, 0x48, 0xb1 };
-	 uint8_t SEED[32] = { 0xee, 0x27, 0x52, 0x0a, 0x19, 0x6c, 0x6b, 0x0d, 0xa0,
-	 0xc5, 0x6a, 0x43, 0x97, 0xad, 0x79, 0xe8, 0x83, 0x37, 0xd7, 0x3a,
-	 0xb3, 0x88, 0xc0, 0x00, 0x4c, 0x5c, 0xce, 0xde, 0xc7, 0xaa, 0x28,
-	 0x5e };
-	 memcpy(private_key->S, S, 20);
-	 memcpy(private_key->SEED, SEED, 32);*/
+
 	randombytes(private_key->S, 20);
 	randombytes(private_key->SEED, 32);
 
@@ -57,7 +49,7 @@ void gen_public_key(lmots_private_key *sk, lmots_public_key *pk) {
 	memset(tmp, 0, 32);
 
 	for (int i = 0; i < P; i++) {
-		concat_hash_value(sk->S, sk->SEED, i + 1, 0xFF, tmp_concatenated);
+		concat_hash_value(sk->S, sk->SEED, i + 1, D_PRG, tmp_concatenated);
 		//print_hex(tmp_concatenated, 55);
 		sha3_256(tmp, tmp_concatenated, 55);
 		for (int j = 0; j < (1 << W) - 1; j++) {
@@ -75,20 +67,15 @@ void gen_public_key(lmots_private_key *sk, lmots_public_key *pk) {
 int lms_ots_keygen(unsigned char *sk, unsigned char *pk) {
 	lmots_private_key private_key;
 	lmots_public_key publick_key;
+	private_key.remain_sign = 1;
 	gen_private_key(&private_key);
 	gen_public_key(&private_key, &publick_key);
-	printf("sk: \n");
-	print_hex(private_key.S, 20);
-	print_hex(private_key.SEED, 32);
-
-	printf("pk: \n");
-	print_hex(publick_key.S, 20);
-	print_hex(publick_key.K, 32);
 
 	memcpy(sk, &private_key.alg_type, 1);
 	memcpy(sk + 1, private_key.S, 20);
 	memcpy(sk + 21, private_key.SEED, 32);
-	memcpy(sk + 53, &private_key.remain_sign, sizeof(size_t));
+	memcpy(sk + 53, &private_key.remain_sign, 1);
+
 
 	memcpy(pk, &publick_key.alg_type, 1);
 	memcpy(pk + 1, publick_key.K, 32);
@@ -123,7 +110,7 @@ unsigned lm_ots_compute_checksum(const unsigned char *Q) {
 int lms_ots_sign(unsigned char *message, size_t input_size, unsigned char *sk,
 		unsigned char *signature) {
 	//TODO: add protection against more than one sig
-	uint16_t a = 0x8181;
+	uint16_t a =D_MESG;
 	lmots_private_key private_key;
 	lmots_signature sig;
 	unsigned char concat_message[86] = { 0 };
@@ -139,7 +126,6 @@ int lms_ots_sign(unsigned char *message, size_t input_size, unsigned char *sk,
 	randombytes(C, 32);
 
 	memcpy(sig.C, C, 32);
-	print_hex(sig.C, 32);
 	sig.alg_type = private_key.alg_type;
 	memcpy(concat_message, private_key.S, 20);
 	memcpy(concat_message + 20, &a, 2);
@@ -150,16 +136,13 @@ int lms_ots_sign(unsigned char *message, size_t input_size, unsigned char *sk,
 	uint16_t checksum_result = 0;
 	checksum_result = lm_ots_compute_checksum(hash);
 	uint8_t buff_check[2] = { 0 };
-	printf("checksum: %d\n", checksum_result);
 	put_bigendian(buff_check, checksum_result, 2);
 	memcpy(hash + 32, buff_check, 2);
-	printf("V: ");
-	print_hex(hash, 34);
 	memset(sig.y, 0, P * 32);
 	unsigned char concatenated[55] = { 0 };
 	for (int i = 0; i < P; i++) {
 		unsigned char tmp[32] = { 0 };
-		concat_hash_value(private_key.S, private_key.SEED, i + 1, 0xff,
+		concat_hash_value(private_key.S, private_key.SEED, i + 1, D_PRG,
 				concatenated);
 		sha3_256(tmp, concatenated, 55);
 		for (uint16_t j = 0; j < lms_ots_coeff(hash, i, W); j++) {
@@ -173,25 +156,19 @@ int lms_ots_sign(unsigned char *message, size_t input_size, unsigned char *sk,
 	memcpy(signature, &sig.alg_type, 2);
 	memcpy(signature + 2, sig.C, 32);
 	memcpy(signature + 34, sig.y, P * 32);
-	printf("y: ");
-	print_hex(sig.y, P * 32);
-
 	return 1;
 }
 
 int lms_ots_verify(unsigned char *message, size_t input_size, unsigned char *pk,
 		unsigned char *signature) {
 
-	uint16_t a = 0x8181;
+	uint16_t a = D_MESG;
 	lmots_public_key publick_key;
 	lmots_signature sig;
 	memcpy(&publick_key.alg_type, pk, 1);
 	memcpy(publick_key.K, pk + 1, 32);
 	memcpy(publick_key.S, pk + 33, 20);
 	unsigned char concat_message[86] = { 0 };
-	printf("pk: \n");
-	print_hex(publick_key.S, 20);
-	print_hex(publick_key.K, 32);
 
 	memcpy(&sig.alg_type, signature, 2);
 	memcpy(sig.C, signature + 2, 32);
@@ -209,7 +186,6 @@ int lms_ots_verify(unsigned char *message, size_t input_size, unsigned char *pk,
 	uint16_t checksum_result = 0;
 	checksum_result = lm_ots_compute_checksum(hash);
 	uint8_t buff_check[2] = { 0 };
-	printf("checksum: %d\n", checksum_result);
 	put_bigendian(buff_check, checksum_result, 2);
 	memcpy(hash + 32, buff_check, 2);
 
@@ -234,10 +210,6 @@ int lms_ots_verify(unsigned char *message, size_t input_size, unsigned char *pk,
 	}
 	unsigned char res[32] = { 0 };
 	sha3_256_inc_finalize(res, &ctx);
-	printf("pk: \n");
-	print_hex(publick_key.S, 20);
-	print_hex(publick_key.K, 32);
-	print_hex(res, 32);
-	return memcmp(publick_key.K, res, 32);
+	return memcmp(publick_key.K, res, 32) == 0;
 }
 

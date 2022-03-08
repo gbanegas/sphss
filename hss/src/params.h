@@ -23,6 +23,11 @@ typedef enum lmots_algorithm_type {
 #define N 32
 
 #define D_PBLC 0x8080 //defined in https://datatracker.ietf.org/doc/html/rfc8554#section-4.3
+#define D_MESG 0x8181
+#define D_LEAF 0x8282
+#define D_INTR 0x8383
+#define D_PRG 0xFF
+
 
 //#ifdef LMOTS_SHA256_N32_W1
 #define ALG_NAME_LMOTS "LMOTS_SHA256_N32_W1"
@@ -62,7 +67,7 @@ typedef struct lmots_private_key {
 	lmots_algorithm_type alg_type;
 	unsigned char S[20];
 	unsigned char SEED[32];
-	size_t remain_sign;
+	uint8_t remain_sign;
 } lmots_private_key;
 
 typedef struct lmots_public_key {

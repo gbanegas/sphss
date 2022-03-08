@@ -17,21 +17,26 @@
 
 int main(void) {
 	puts("!!!Hello World!!!"); /* prints !!!Hello World!!! */
-	unsigned char sk[64] = { 0 };
-	unsigned char pk[64] = { 0 };
+	unsigned char sk[55];
+	memset(sk, 0, 55);
+	print_hex(sk, 55);
+	unsigned char pk[64];
+	memset(pk, 0, 64);
 	unsigned char message[5] = "teste";
 	unsigned char signature[8516] = { 0 };
+	memset(signature, 0, 8516);
 	lms_ots_keygen(sk, pk);
-	/*printf("sk:\n");
-	 print_hex(sk, 56);
-	 printf("pk: \n");
-	 print_hex(pk, 56);*/
+	printf("sk:\n");
+	print_hex(sk, 55);
+	printf("pk: \n");
+	print_hex(pk, 56);
 
 	lms_ots_sign(message, 5, sk, signature);
-	//printf("signature: \n");
-	//print_hex(signature, 8516);
+
+	printf("signature: \n");
+	print_hex(signature, 8516);
 	int ret = lms_ots_verify(message, 5, pk, signature);
-	printf("ret: %d\n", ret);
+	printf("valid ? %d\n", ret);
 
 	return EXIT_SUCCESS;
 }
