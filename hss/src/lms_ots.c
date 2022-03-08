@@ -9,16 +9,16 @@
 
 void gen_private_key(lmots_private_key *private_key) {
 	private_key->remain_sign = 1;
-	uint8_t S[20] = { 0x13, 0xa3, 0x70, 0xf1, 0x53, 0xeb, 0x41, 0x87, 0xc9,
-			0x80, 0x41, 0xb7, 0x75, 0xd8, 0x71, 0x9d, 0xfd, 0xfa, 0x48, 0xb1 };
-	uint8_t SEED[32] = { 0xee, 0x27, 0x52, 0x0a, 0x19, 0x6c, 0x6b, 0x0d, 0xa0,
-			0xc5, 0x6a, 0x43, 0x97, 0xad, 0x79, 0xe8, 0x83, 0x37, 0xd7, 0x3a,
-			0xb3, 0x88, 0xc0, 0x00, 0x4c, 0x5c, 0xce, 0xde, 0xc7, 0xaa, 0x28,
-			0x5e };
-	memcpy(private_key->S, S, 20);
-	memcpy(private_key->SEED, SEED, 32);
-	//randombytes(private_key->S, 20);
-	//randombytes(private_key->SEED, 32);
+	/*uint8_t S[20] = { 0x13, 0xa3, 0x70, 0xf1, 0x53, 0xeb, 0x41, 0x87, 0xc9,
+	 0x80, 0x41, 0xb7, 0x75, 0xd8, 0x71, 0x9d, 0xfd, 0xfa, 0x48, 0xb1 };
+	 uint8_t SEED[32] = { 0xee, 0x27, 0x52, 0x0a, 0x19, 0x6c, 0x6b, 0x0d, 0xa0,
+	 0xc5, 0x6a, 0x43, 0x97, 0xad, 0x79, 0xe8, 0x83, 0x37, 0xd7, 0x3a,
+	 0xb3, 0x88, 0xc0, 0x00, 0x4c, 0x5c, 0xce, 0xde, 0xc7, 0xaa, 0x28,
+	 0x5e };
+	 memcpy(private_key->S, S, 20);
+	 memcpy(private_key->SEED, SEED, 32);*/
+	randombytes(private_key->S, 20);
+	randombytes(private_key->SEED, 32);
 
 }
 void put_bigendian(void *target, unsigned long long value, size_t bytes) {
@@ -132,11 +132,11 @@ int lms_ots_sign(unsigned char *message, size_t input_size, unsigned char *sk,
 	memcpy(private_key.SEED, sk + 21, 32);
 	memcpy(&private_key.remain_sign, sk + 53, sizeof(size_t));
 
-	unsigned char C[32] = { 0x31, 0xe2, 0x99, 0x69, 0x84, 0x91, 0x4c, 0xa2,
-			0xe0, 0xa8, 0xc8, 0x34, 0x9d, 0x88, 0xbd, 0xbe, 0x09, 0x70, 0xb5,
-			0x89, 0x04, 0x4f, 0x20, 0xbf, 0x89, 0xcb, 0x8f, 0xe9, 0xd6, 0x4d,
-			0x3d, 0x90 };
-	//randombytes(C, 32);
+	unsigned char C[32] = { 0 };/*{ 0x31, 0xe2, 0x99, 0x69, 0x84, 0x91, 0x4c, 0xa2,
+	 0xe0, 0xa8, 0xc8, 0x34, 0x9d, 0x88, 0xbd, 0xbe, 0x09, 0x70, 0xb5,
+	 0x89, 0x04, 0x4f, 0x20, 0xbf, 0x89, 0xcb, 0x8f, 0xe9, 0xd6, 0x4d,
+	 0x3d, 0x90 };*/
+	randombytes(C, 32);
 
 	memcpy(sig.C, C, 32);
 	print_hex(sig.C, 32);
@@ -189,12 +189,15 @@ int lms_ots_verify(unsigned char *message, size_t input_size, unsigned char *pk,
 	memcpy(publick_key.K, pk + 1, 32);
 	memcpy(publick_key.S, pk + 33, 20);
 	unsigned char concat_message[86] = { 0 };
+	printf("pk: \n");
+	print_hex(publick_key.S, 20);
+	print_hex(publick_key.K, 32);
 
 	memcpy(&sig.alg_type, signature, 2);
 	memcpy(sig.C, signature + 2, 32);
 	memcpy(sig.y, signature + 34, P * 32);
-	printf("y: ");
-	print_hex(sig.y, P * 32);
+	/*printf("y: ");
+	 print_hex(sig.y, P * 32);*/
 
 	memcpy(concat_message, publick_key.S, 20);
 	memcpy(concat_message + 20, &a, 2);
@@ -216,13 +219,14 @@ int lms_ots_verify(unsigned char *message, size_t input_size, unsigned char *pk,
 	sha3_256_inc_init(&ctx);
 
 	memcpy(tmp_concat, publick_key.S, 20);
-	memcpy(publick_key.S + 20, &D_public, 2);
-	hash_update(publick_key.S, 22, &ctx);
+	memcpy(tmp_concat + 20, &D_public, 2);
+	hash_update(tmp_concat, 22, &ctx);
 	unsigned char concatenated[55] = { 0 };
+	unsigned max_digit = (1 << W) - 1;
 	for (int i = 0; i < P; i++) {
 		unsigned char tmp[32] = { 0 };
 		memcpy(tmp, sig.y + (i * 32), 32);
-		for (uint16_t j = lms_ots_coeff(hash, i, W); j < (1 << W) - 1; j++) {
+		for (uint16_t j = lms_ots_coeff(hash, i, W); j < max_digit; j++) {
 			concat_hash_value(publick_key.S, tmp, i, j, concatenated);
 			sha3_256(tmp, concatenated, 55);
 		}
@@ -230,7 +234,8 @@ int lms_ots_verify(unsigned char *message, size_t input_size, unsigned char *pk,
 	}
 	unsigned char res[32] = { 0 };
 	sha3_256_inc_finalize(res, &ctx);
-	printf("K: \n");
+	printf("pk: \n");
+	print_hex(publick_key.S, 20);
 	print_hex(publick_key.K, 32);
 	print_hex(res, 32);
 	return memcmp(publick_key.K, res, 32);

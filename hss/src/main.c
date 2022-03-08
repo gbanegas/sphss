@@ -17,8 +17,8 @@
 
 int main(void) {
 	puts("!!!Hello World!!!"); /* prints !!!Hello World!!! */
-	unsigned char sk[56] = { 0 };
-	unsigned char pk[56] = { 0 };
+	unsigned char sk[64] = { 0 };
+	unsigned char pk[64] = { 0 };
 	unsigned char message[5] = "teste";
 	unsigned char signature[8516] = { 0 };
 	lms_ots_keygen(sk, pk);
