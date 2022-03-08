@@ -28,13 +28,12 @@ typedef enum lmots_algorithm_type {
 #define D_INTR 0x8383
 #define D_PRG 0xFF
 
-
-//#ifdef LMOTS_SHA256_N32_W1
+#ifdef LMOTS_SHA256_N32_W1
 #define ALG_NAME_LMOTS "LMOTS_SHA256_N32_W1"
 #define P 265
 #define W 1
 #define LS 7
-//#endif
+#endif
 
 #ifdef LMOTS_SHA256_N32_W2
 #define ALG_NAME_LMOTS "LMOTS_SHA256_N32_W2"
@@ -50,12 +49,14 @@ typedef enum lmots_algorithm_type {
 #define LS 4
 #endif
 
-#ifdef LMOTS_SHA256_N32_W4
+#ifdef LMOTS_SHA256_N32_W8
 #define ALG_NAME_LMOTS "LMOTS_SHA256_N32_W4"
 #define P 34
 #define W 8
 #define LS 0
 #endif
+
+#define CRYPTO_BYTES_LMOS (32*P)+N+4
 
 typedef struct lmots_signature {
 	lmots_algorithm_type alg_type;
