@@ -1,6 +1,7 @@
 #ifndef XMSS_UTILS_H
 #define XMSS_UTILS_H
 
+#include <stdio.h>
 /**
  * Converts the value of 'in' to 'outlen' bytes in big-endian byte order.
  */
@@ -12,4 +13,6 @@ void ull_to_bytes(unsigned char *out, unsigned int outlen,
  */
 unsigned long long bytes_to_ull(const unsigned char *in, unsigned int inlen);
 
+
+void print_hex(unsigned char *array, unsigned int inlen);
 #endif

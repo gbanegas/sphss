@@ -1,35 +1,17 @@
-#ifndef XMSS_HASH_H
-#define XMSS_HASH_H
+/*
+ * hash.h
+ *
+ *  Created on: Mar 7, 2022
+ *      Author: Gustavo Banegas
+ */
 
-#include <stdint.h>
-#include "params.h"
+#ifndef HASH_H_
+#define HASH_H_
 
-void addr_to_bytes(unsigned char *bytes, const uint32_t addr[8]);
+#include <stddef.h>
+#include "fips202.h"
 
-int prf(const xmss_params *params,
-        unsigned char *out, const unsigned char in[32],
-        const unsigned char *key);
+void hash(const unsigned char *input, size_t inlen, unsigned char *output);
 
-int prf_keygen(const xmss_params *params,
-        unsigned char *out, const unsigned char *in,
-        const unsigned char *key);
-
-int h_msg(const xmss_params *params,
-          unsigned char *out,
-          const unsigned char *in, unsigned long long inlen,
-          const unsigned char *key, const unsigned int keylen);
-
-int thash_h(const xmss_params *params,
-            unsigned char *out, const unsigned char *in,
-            const unsigned char *pub_seed, uint32_t addr[8]);
-
-int thash_f(const xmss_params *params,
-            unsigned char *out, const unsigned char *in,
-            const unsigned char *pub_seed, uint32_t addr[8]);
-
-int hash_message(const xmss_params *params, unsigned char *out,
-                 const unsigned char *R, const unsigned char *root,
-                 unsigned long long idx,
-                 unsigned char *m_with_prefix, unsigned long long mlen);
-
-#endif
+void hash_update(const unsigned char *input, const size_t inlen,  sha3_256incctx *ctx);
+#endif /* HASH_H_ */
