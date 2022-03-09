@@ -32,8 +32,10 @@ int main(void) {
 	print_hex(pk, 56);
 
 	lms_sign(message, 5, sk, signature);
-	print_hex(signature, CRYPTO_BYTES_LMS);
+	//print_hex(signature, CRYPTO_BYTES_LMS);
 
+	int ret = lms_verify(message, 5, pk, signature);
+	printf("valid ? %d\n", ret);
 	/*
 	 lms_ots_sign(message, 5, sk, signature);
 

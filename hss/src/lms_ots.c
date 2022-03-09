@@ -14,17 +14,6 @@ void gen_lmots_private_key(lmots_private_key *private_key) {
 
 }
 
-void concat_hash_value(const uint_fast8_t *S, const uint_fast8_t *tmp,
-		uint16_t i, uint8_t j, uint_fast8_t *result) {
-	uint_fast8_t buff[2];
-	put_bigendian(buff, i, 2);
-	memcpy(result, S, 20);
-	memcpy(result + 20, buff, 2);
-	memcpy(result + 22, &j, 1);
-	memcpy(result + 23, tmp, 32);
-
-}
-
 void gen_lmots_public_key(lmots_private_key *sk, lmots_public_key *pk) {
 //TODO: remove dependency from SHA3
 	sk->alg_type = LMOTS_ALG_TYPE;
@@ -75,29 +64,6 @@ int lms_ots_keygen(unsigned char *sk, unsigned char *pk) {
 	return 0;
 }
 
-uint8_t lms_ots_coeff(const unsigned char *Q, int i, int w) {
-	unsigned index = (i * w) / 8; /* Which byte holds the coefficient */
-	/* we want */
-	unsigned digits_per_byte = 8 / w;
-	unsigned shift = w * (~i & (digits_per_byte - 1)); /* Where in the byte */
-	/* the coefficient is */
-	unsigned mask = (1 << w) - 1; /* How to mask off the parts we're not */
-	/* interested in */
-
-	return (Q[index] >> shift) & mask;
-}
-
-unsigned lm_ots_compute_checksum(const unsigned char *Q) {
-	unsigned sum = 0;
-	unsigned i;
-	unsigned u = 8 * N / W;
-	unsigned max_digit = (1 << W) - 1;
-	for (i = 0; i < u; i++) {
-		sum += max_digit - lms_ots_coeff(Q, i, W);
-	}
-	return sum << LS;
-}
-
 int lms_ots_sign(unsigned char *message, size_t input_size, unsigned char *sk,
 		unsigned char *signature) {
 	//TODO: add protection against more than one sig
@@ -125,7 +91,7 @@ int lms_ots_sign(unsigned char *message, size_t input_size, unsigned char *sk,
 	unsigned char hash[34] = { 0 };
 	sha3_256(hash, concat_message, 54 + input_size);
 	uint16_t checksum_result = 0;
-	checksum_result = lm_ots_compute_checksum(hash);
+	checksum_result = lms_ots_compute_checksum(hash);
 	uint8_t buff_check[2] = { 0 };
 	put_bigendian(buff_check, checksum_result, 2);
 	memcpy(hash + 32, buff_check, 2);
@@ -156,11 +122,10 @@ int lms_ots_sign_internal(const unsigned char *message, const size_t input_size,
 	uint16_t a = D_MESG;
 	unsigned char concat_message[86] = { 0 };
 
-	unsigned char C[32] = { 0 };/*{ 0x31, 0xe2, 0x99, 0x69, 0x84, 0x91, 0x4c, 0xa2,
-	 0xe0, 0xa8, 0xc8, 0x34, 0x9d, 0x88, 0xbd, 0xbe, 0x09, 0x70, 0xb5,
-	 0x89, 0x04, 0x4f, 0x20, 0xbf, 0x89, 0xcb, 0x8f, 0xe9, 0xd6, 0x4d,
-	 0x3d, 0x90 };*/
-	randombytes(C, 32);
+	unsigned char C[32] = { 0x0a, 0x6c, 0x4b, 0xb4, 0xa0, 0x5f, 0xfb, 0x25, 0x53, 0x68, 0xbe, 0x7e, 0x4a,
+			0xc3, 0x03, 0xfe, 0x96, 0xf5, 0x29, 0xe3, 0xb7, 0x7e, 0xb4, 0xff, 0xe9, 0xf0, 0xd8, 0xb1, 0xb5, 0xdf,
+			0xf5, 0xa1 };
+	//randombytes(C, 32);
 
 	memcpy(sig->C, C, 32);
 	sig->alg_type = private_key->alg_type;
@@ -171,7 +136,7 @@ int lms_ots_sign_internal(const unsigned char *message, const size_t input_size,
 	unsigned char hash[34] = { 0 };
 	sha3_256(hash, concat_message, 54 + input_size);
 	uint16_t checksum_result = 0;
-	checksum_result = lm_ots_compute_checksum(hash);
+	checksum_result = lms_ots_compute_checksum(hash);
 	uint8_t buff_check[2] = { 0 };
 	put_bigendian(buff_check, checksum_result, 2);
 	memcpy(hash + 32, buff_check, 2);
@@ -219,7 +184,7 @@ int lms_ots_verify(unsigned char *message, size_t input_size, unsigned char *pk,
 	unsigned char hash[34] = { 0 };
 	sha3_256(hash, concat_message, 54 + input_size);
 	uint16_t checksum_result = 0;
-	checksum_result = lm_ots_compute_checksum(hash);
+	checksum_result = lms_ots_compute_checksum(hash);
 	uint8_t buff_check[2] = { 0 };
 	put_bigendian(buff_check, checksum_result, 2);
 	memcpy(hash + 32, buff_check, 2);

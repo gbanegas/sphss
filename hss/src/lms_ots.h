@@ -17,6 +17,7 @@
 #include "params.h"
 #include "hash.h"
 #include "fips202.h"
+#include "lms_utils.h"
 
 
 int lms_ots_keygen(unsigned char *sk, unsigned char *pk);
@@ -31,4 +32,5 @@ int lms_ots_verify(unsigned char *message, size_t input_size, unsigned char *pk,
 		unsigned char *signature);
 
 void gen_lmots_public_key(lmots_private_key *sk, lmots_public_key *pk);
+
 #endif /* LMS_OTS_H_ */
