@@ -9,10 +9,8 @@
 
 void concat_hash_value(const uint_fast8_t *S, const uint_fast8_t *tmp,
 		uint16_t i, uint8_t j, uint_fast8_t *result) {
-	uint_fast8_t buff[2];
-	put_bigendian(buff, i, 2);
 	memcpy(result, S, 20);
-	memcpy(result + 20, buff, 2);
+	put_bigendian(result+20, i, 2);
 	memcpy(result + 22, &j, 1);
 	memcpy(result + 23, tmp, 32);
 

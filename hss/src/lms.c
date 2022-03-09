@@ -8,19 +8,12 @@
 #include "lms.h"
 
 void gen_lms_private_key(lms_private_key *sk) {
-	uint8_t p_I[] = { 0xd7, 0x62, 0xd3, 0xf3, 0xa8, 0x61, 0x1a, 0x4a, 0x8c,
-			0x19, 0x5a, 0x8f, 0x21, 0x3c, 0x8f, 0x35 };
-	uint8_t seed[] = { 0x9d, 0x91, 0x4e, 0x71, 0x15, 0x86, 0xa9, 0x2c, 0x40,
-			0x21, 0x73, 0x77, 0x37, 0x1e, 0xb6, 0x3e, 0x3f, 0xdf, 0x2e, 0x38,
-			0x89, 0xe5, 0xb9, 0x6f, 0x63, 0x4d, 0x72, 0x1a, 0xb7, 0xfd, 0xdd,
-			0xe1 };
-	memcpy(sk->param_I, p_I, 16);
-	memcpy(sk->SEED, seed, 32);
-	//randombytes(sk->param_I, 16);
+
+	randombytes(sk->param_I, 16);
 	sk->q = 0;
 	sk->lmos_alg_type = LMOTS_ALG_TYPE;
 	sk->lms_type = LMS_ALG_TYPE;
-	//randombytes(sk->SEED, 32);
+	randombytes(sk->SEED, 32);
 	//int max_digit = 1 << H;
 }
 
@@ -230,7 +223,6 @@ int lms_sign(const unsigned char *message, const size_t input_size,
 	sig.q = private_key.q;
 	private_key.q += 1;
 
-
 	serialize_lms_signature(&sig, signature);
 	serialize_private_key(&private_key, sk);
 
@@ -239,17 +231,13 @@ int lms_sign(const unsigned char *message, const size_t input_size,
 
 void recover_lmots_public_key(lms_public_key *pk, lms_signature *sig,
 		const unsigned char *message, const size_t input_size,
-		lmots_public_key *pk_tc) {
+		unsigned char *pk_tc) {
 	uint16_t a = D_MESG;
 	unsigned char tmp_S[20] = { 0 };
 	memcpy(tmp_S, pk->param_I, 16);
 	put_bigendian(tmp_S + 16, sig->q, 4);
 
 	unsigned char concat_message[86] = { 0 };
-
-	/*printf("y: ");
-	 print_hex(sig.y, P * 32);*/
-
 	memcpy(concat_message, tmp_S, 20);
 	memcpy(concat_message + 20, &a, 2);
 	memcpy(concat_message + 22, sig->lmots_sig.C, 32);
@@ -259,9 +247,7 @@ void recover_lmots_public_key(lms_public_key *pk, lms_signature *sig,
 	sha3_256(hash, concat_message, 54 + input_size);
 	uint16_t checksum_result = 0;
 	checksum_result = lms_ots_compute_checksum(hash);
-	uint8_t buff_check[2] = { 0 };
-	put_bigendian(buff_check, checksum_result, 2);
-	memcpy(hash + 32, buff_check, 2);
+	put_bigendian(hash + 32, checksum_result, 2);
 
 	sha3_256incctx ctx;
 	uint16_t D_public = 0x8080;
@@ -271,18 +257,18 @@ void recover_lmots_public_key(lms_public_key *pk, lms_signature *sig,
 	memcpy(tmp_concat, tmp_S, 20);
 	memcpy(tmp_concat + 20, &D_public, 2);
 	hash_update(tmp_concat, 22, &ctx);
-	unsigned char concatenated[55] = { 0 };
+	unsigned char concatenated[56] = { 0 };
 	unsigned max_digit = (1 << W) - 1;
 	for (int i = 0; i < P; i++) {
 		unsigned char tmp[32] = { 0 };
 		memcpy(tmp, sig->lmots_sig.y + (i * 32), 32);
 		for (uint16_t j = lms_ots_coeff(hash, i, W); j < max_digit; j++) {
 			concat_hash_value(tmp_S, tmp, i, j, concatenated);
-			sha3_256(tmp, concatenated, 54);
+			sha3_256(tmp, concatenated, 55);
 		}
 		hash_update(tmp, 32, &ctx);
 	}
-	sha3_256_inc_finalize(pk_tc->K, &ctx);
+	sha3_256_inc_finalize(pk_tc, &ctx);
 
 }
 
@@ -290,40 +276,40 @@ int lms_verify(const unsigned char *message, const size_t input_size,
 		unsigned char *pk, unsigned char *signature) {
 	lms_signature sig;
 	lms_public_key public_key;
-	lmots_public_key lmots_pk;
+	unsigned char lmots_pk[32] = { 0 };
 	deserialize_lms_signature(signature, &sig);
 	deserialize_public_key(pk, &public_key);
-	print_lms_signature(&sig);
 	//TODO: add the verifications
-	recover_lmots_public_key(&public_key, &sig, message, input_size, &lmots_pk);
+	recover_lmots_public_key(&public_key, &sig, message, input_size, lmots_pk);
 	unsigned int node_pos = sig.q + (1 << H);
 	unsigned char tmp[87] = { 0 };
 	memcpy(tmp, public_key.param_I, 16);
 	put_bigendian(tmp + 16, node_pos, 4);
 	put_bigendian(tmp + 20, D_LEAF, 2);
-	memcpy(tmp + 22, lmots_pk.K, 32);
+	memcpy(tmp + 22, lmots_pk, 32);
 	unsigned char res[32] = { 0 };
 	sha3_256(res, tmp, 54);
 	for (int i = 0; i < H; i++) {
-		memset(tmp, 0, 86);
-		memcpy(tmp, public_key.param_I, 16);
-		put_bigendian(tmp + 16, node_pos / 2, 4);
-		put_bigendian(tmp + 20, D_INTR, 2);
-		if ((node_pos % 2) != 0) {
+		if ((node_pos % 2) == 0) {
+			memcpy(tmp, public_key.param_I, 16);
+			put_bigendian(tmp + 16, (node_pos / 2), 4);
+			put_bigendian(tmp + 20, D_INTR, 2);
+			memcpy(tmp + 22, res, 32);
+			memcpy(tmp + 54, sig.path[i].node, 32);
+
+		} else {
+			memcpy(tmp, public_key.param_I, 16);
+			put_bigendian(tmp + 16, (node_pos / 2), 4);
+			put_bigendian(tmp + 20, D_INTR, 2);
 			memcpy(tmp + 22, sig.path[i].node, 32);
 			memcpy(tmp + 54, res, 32);
 
-		} else {
-			memcpy(tmp + 32, res, 32);
-			memcpy(tmp + 54, sig.path[i].node, 32);
 		}
 		sha3_256(res, tmp, 86);
-		node_pos /= 2;
+		node_pos = node_pos / 2;
 	}
-	print_hex(public_key.K, 32);
-	print_hex(res, 32);
 
-	return memcmp(public_key.K, res, 32);
+	return memcmp(public_key.K, res, 32) == 0;
 
 }
 
