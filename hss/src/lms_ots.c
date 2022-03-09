@@ -7,23 +7,14 @@
 
 #include "lms_ots.h"
 
-void gen_private_key(lmots_private_key *private_key) {
+void gen_lmots_private_key(lmots_private_key *private_key) {
 
 	randombytes(private_key->S, 20);
 	randombytes(private_key->SEED, 32);
 
 }
-void put_bigendian(void *target, unsigned long long value, size_t bytes) {
-	unsigned char *b = target;
-	int i;
 
-	for (i = bytes - 1; i >= 0; i--) {
-		b[i] = value & 0xff;
-		value >>= 8;
-	}
-}
-
-void concat_hash_value(uint_fast8_t *S, uint_fast8_t *tmp, uint16_t i,
+void concat_hash_value(const uint_fast8_t *S, const uint_fast8_t *tmp, uint16_t i,
 		uint8_t j, uint_fast8_t *result) {
 	uint_fast8_t buff[2];
 	put_bigendian(buff, i, 2);
@@ -34,8 +25,9 @@ void concat_hash_value(uint_fast8_t *S, uint_fast8_t *tmp, uint16_t i,
 
 }
 
-void gen_public_key(lmots_private_key *sk, lmots_public_key *pk) {
+void gen_lmots_public_key(lmots_private_key *sk, lmots_public_key *pk) {
 //TODO: remove dependency from SHA3
+	sk->alg_type = LMOTS_ALG_TYPE;
 	pk->alg_type = sk->alg_type;
 	uint16_t D_public = 0x8080;
 	uint_fast8_t tmp[32] = { 0 };
@@ -68,8 +60,8 @@ int lms_ots_keygen(unsigned char *sk, unsigned char *pk) {
 	lmots_private_key private_key;
 	lmots_public_key publick_key;
 	private_key.remain_sign = 1;
-	gen_private_key(&private_key);
-	gen_public_key(&private_key, &publick_key);
+	gen_lmots_private_key(&private_key);
+	gen_lmots_public_key(&private_key, &publick_key);
 
 	memcpy(sk, &private_key.alg_type, 1);
 	memcpy(sk + 1, private_key.S, 20);

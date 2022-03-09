@@ -14,5 +14,7 @@ void ull_to_bytes(unsigned char *out, unsigned int outlen,
 unsigned long long bytes_to_ull(const unsigned char *in, unsigned int inlen);
 
 
+void put_bigendian(void *target, unsigned long long value, size_t bytes);
+
 void print_hex(unsigned char *array, unsigned int inlen);
 #endif

@@ -27,6 +27,17 @@ unsigned long long bytes_to_ull(const unsigned char *in, unsigned int inlen) {
 	return retval;
 }
 
+void put_bigendian(void *target, unsigned long long value, size_t bytes) {
+	unsigned char *b = target;
+	int i;
+
+	for (i = bytes - 1; i >= 0; i--) {
+		b[i] = value & 0xff;
+		value >>= 8;
+	}
+}
+
+
 void print_hex(unsigned char *array, unsigned int inlen) {
 	printf("0x");
 	for (unsigned int i = 0; i < inlen; i++) {

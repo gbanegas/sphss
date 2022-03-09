@@ -33,6 +33,7 @@ typedef enum lmots_algorithm_type {
 #define P 265
 #define W 1
 #define LS 7
+#define LMOTS_ALG_TYPE lmots_sha256_n32_w1
 #endif
 
 #ifdef LMOTS_SHA256_N32_W2
@@ -40,6 +41,7 @@ typedef enum lmots_algorithm_type {
 #define P 133
 #define W 2
 #define LS 6
+#define LMOTS_ALG_TYPE lmots_sha256_n32_w2
 #endif
 
 #ifdef LMOTS_SHA256_N32_W4
@@ -47,13 +49,15 @@ typedef enum lmots_algorithm_type {
 #define P 67
 #define W 4
 #define LS 4
+#define LMOTS_ALG_TYPE lmots_sha256_n32_w4
 #endif
 
 #ifdef LMOTS_SHA256_N32_W8
-#define ALG_NAME_LMOTS "LMOTS_SHA256_N32_W4"
+#define ALG_NAME_LMOTS "LMOTS_SHA256_N32_W8"
 #define P 34
 #define W 8
 #define LS 0
+#define LMOTS_ALG_TYPE lmots_sha256_n32_w8
 #endif
 
 #define CRYPTO_BYTES_LMOS (32*P)+N+4
@@ -78,7 +82,7 @@ typedef struct lmots_public_key {
 } lmots_public_key;
 /* hash-based signatures (hbs) */
 
-enum lms_algorithm_type {
+typedef enum lms_algorithm_type {
 
 	lms_reserved = 0,
 	lms_sha256_n32_h5 = 5,
@@ -86,38 +90,64 @@ enum lms_algorithm_type {
 	lms_sha256_n32_h15 = 7,
 	lms_sha256_n32_h20 = 8,
 	lms_sha256_n32_h25 = 9
-};
+} lms_algorithm_type;
 
 #define M 32
 #define I 64
 #define ALG_NAME_LMS "LMS_SHA256_M32_H5"
 #define H 5
+#define LMS_ALG_TYPE lms_sha256_n32_h5
 
 #ifdef LMS_SHA256_M32_H10
 #define ALG_NAME_LMS "LMS_SHA256_M32_H10"
 #define H 10
+#define LMS_ALG_TYPE lms_sha256_n32_h10
 #endif
 
 #ifdef LMS_SHA256_M32_H15
 #define ALG_NAME_LMS "LMS_SHA256_M32_H15"
 #define H 15
+#define LMS_ALG_TYPE lms_sha256_n32_h15
 #endif
 
 #ifdef LMS_SHA256_M32_H20
 #define ALG_NAME_LMS "LMS_SHA256_M32_H20"
 #define H 20
+#define LMS_ALG_TYPE lms_sha256_n32_h20
 #endif
 
 #ifdef LMS_SHA256_M32_H25
 #define ALG_NAME_LMS "LMS_SHA256_M32_H25"
 #define H 25
+#define LMS_ALG_TYPE lms_sha256_n32_h25
 #endif
+
+typedef struct lms_path {
+	uint8_t node[32];
+} lms_path;
 
 typedef struct lms_signature {
 	unsigned int q;
 	lmots_signature lmots_sig;
-//lms_path nodes;
+	lms_algorithm_type lms_type;
+	lms_path path[H];
 } lms_signature;
+
+typedef struct lms_public_key {
+	lmots_algorithm_type lmos_alg_type;
+	lms_algorithm_type lms_type;
+	unsigned char param_I[16];
+	unsigned char K[32];
+} lms_public_key;
+
+typedef struct lms_private_key {
+	unsigned int q;
+	lmots_algorithm_type lmos_alg_type;
+	lms_algorithm_type lms_type;
+	uint8_t param_I[16];
+	uint8_t SEED[32];
+
+} lms_private_key;
 
 /* hierarchical signature system (hss) */
 
