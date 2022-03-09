@@ -24,6 +24,9 @@ int lms_ots_keygen(unsigned char *sk, unsigned char *pk);
 int lms_ots_sign(unsigned char *message, size_t input_size, unsigned char *sk,
 		unsigned char *signature);
 
+int lms_ots_sign_internal(const unsigned char *message, const size_t input_size,
+		lmots_private_key *private_key, lmots_signature *sig);
+
 int lms_ots_verify(unsigned char *message, size_t input_size, unsigned char *pk,
 		unsigned char *signature);
 

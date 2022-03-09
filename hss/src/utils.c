@@ -37,6 +37,17 @@ void put_bigendian(void *target, unsigned long long value, size_t bytes) {
 	}
 }
 
+unsigned long long get_bigendian(const void *target, size_t bytes) {
+	const unsigned char *b = target;
+	unsigned long long result = 0;
+	int i;
+
+	for (i = 0; i < bytes; i++) {
+		result = 256 * result + (b[i] & 0xff);
+	}
+
+	return result;
+}
 
 void print_hex(unsigned char *array, unsigned int inlen) {
 	printf("0x");
@@ -46,4 +57,31 @@ void print_hex(unsigned char *array, unsigned int inlen) {
 		printf("%02x,", array[i]);
 	}
 	printf("\n");
+}
+
+void print_lmots_signature(lmots_signature *sig) {
+	printf("LMOS Type: %d\n", sig->alg_type);
+	printf("C: ");
+	print_hex(sig->C, 32);
+	printf("y: ");
+	print_hex(sig->y, P * 32);
+
+}
+
+void print_lms_signature(lms_signature *sig) {
+	for (int i = 0; i < 32; i++) {
+		printf("-");
+	}
+	printf("\n");
+	printf("LMS Type: %u\n", sig->lms_type);
+	print_lmots_signature(&sig->lmots_sig);
+	for (int i = 0; i < H; i++) {
+		printf("path[%d]: ", i);
+		print_hex(sig->path[i].node, 32);
+	}
+	for (int i = 0; i < 32; i++) {
+		printf("-");
+	}
+	printf("\n");
+
 }

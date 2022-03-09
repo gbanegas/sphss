@@ -122,6 +122,8 @@ typedef enum lms_algorithm_type {
 #define LMS_ALG_TYPE lms_sha256_n32_h25
 #endif
 
+#define CRYPTO_BYTES_LMS (32*P)+N+4+4+4+(32*H)
+
 typedef struct lms_path {
 	uint8_t node[32];
 } lms_path;
