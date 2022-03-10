@@ -19,24 +19,26 @@
 
 int main(void) {
 	puts("!!!Hello World!!!"); /* prints !!!Hello World!!! */
-	unsigned char sk[60];
+	unsigned char sk[HSS_PRIVATE_KEY];
 	memset(sk, 0, 60);
-	unsigned char pk[56];
-	memset(pk, 0, 56);
+	unsigned char pk[HSS_PUBLIC_KEY];
+	memset(pk, 0, 60);
 	unsigned char message[5] = "teste";
-	unsigned char signature[CRYPTO_BYTES_LMS] = { 0 };
-	memset(signature, 0, CRYPTO_BYTES_LMS);
+	unsigned char signature[CRYPTO_BYTES_HSS] = { 0 };
+	memset(signature, 0, CRYPTO_BYTES_HSS);
 	hss_keygen(sk, pk);
+
+	hss_sign(message, 5, sk, signature);
 	/*printf("sk:\n");
-	print_hex(sk, 60);
-	printf("pk: \n");
-	print_hex(pk, 56);*/
+	 print_hex(sk, 60);
+	 printf("pk: \n");
+	 print_hex(pk, 56);*/
 
 	/*lms_sign(message, 5, sk, signature);
-	//print_hex(signature, CRYPTO_BYTES_LMS);
+	 //print_hex(signature, CRYPTO_BYTES_LMS);
 
-	int ret = lms_verify(message, 5, pk, signature);
-	printf("valid ? %d\n", ret);*/
+	 int ret = lms_verify(message, 5, pk, signature);
+	 printf("valid ? %d\n", ret);*/
 	/*
 	 lms_ots_sign(message, 5, sk, signature);
 

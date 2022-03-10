@@ -157,6 +157,12 @@ typedef struct lms_private_key {
 #define MAX_HSS_LEVELS 8
 #define LEVELS 2
 
+#define HSS_PRIVATE_KEY 4+(LEVELS*(64))
+
+#define HSS_PUBLIC_KEY (4+4+4+16+32)
+
+#define CRYPTO_BYTES_HSS CRYPTO_BYTES_LMS*LEVELS
+
 typedef struct hss_private_key {
 	unsigned int L;
 	unsigned int remain;

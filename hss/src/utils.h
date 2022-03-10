@@ -23,4 +23,10 @@ unsigned long long get_bigendian(const void *target, size_t bytes);
 void print_hex(unsigned char *array, unsigned int inlen);
 
 void print_lms_signature(lms_signature *sig);
+
+void print_hss_private_key(hss_private_key *sk);
+
+void print_hss_public_key(hss_public_key *pk);
+
+void print_lms_key(lms_private_key *sk);
 #endif
