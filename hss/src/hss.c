@@ -37,7 +37,6 @@ int hss_keygen(unsigned char *sk, unsigned char *pk) {
 
 	gen_hss_private_key(&private_key);
 	gen_hss_public_key(&private_key, &public_key);
-
 	print_hss_private_key(&private_key);
 	print_hss_public_key(&public_key);
 

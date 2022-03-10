@@ -1,9 +1,13 @@
-#ifndef XMSS_RANDOMBYTES_H
-#define XMSS_RANDOMBYTES_H
+#ifndef RANDOMBYTES_H
+#define RANDOMBYTES_H
+#include <stdint.h>
 
-/**
- * Tries to read xlen bytes from a source of randomness, and writes them to x.
- */
-void randombytes(unsigned char *x, unsigned long long xlen);
+#ifdef _WIN32
+#include <CRTDEFS.H>
+#else
+#include <unistd.h>
+#endif
+
+int randombytes(uint8_t *buf, size_t n);
 
 #endif
