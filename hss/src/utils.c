@@ -103,8 +103,9 @@ void print_hss_private_key(hss_private_key *sk) {
 	for (int i = 0; i < 8; i++)
 		printf("-");
 	printf("\n");
+	printf("levels: %u\n", sk->L);
 
-	for (int i = 0; i < LEVELS; i++) {
+	for (int i = 0; i < sk->L; i++) {
 		printf("Level: %d\n", i);
 		print_lms_key(&sk->priv[i]);
 	}

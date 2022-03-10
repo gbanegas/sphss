@@ -158,6 +158,7 @@ typedef struct lms_private_key {
 #define LEVELS 2
 
 typedef struct hss_private_key {
+	unsigned int L;
 	unsigned int remain;
 	lms_private_key priv[LEVELS];
 	lms_public_key pubs[LEVELS];

@@ -9,6 +9,7 @@
 
 void gen_hss_private_key(hss_private_key *sk) {
 	sk->remain = (1 << (LEVELS * H));
+	sk->L = LEVELS;
 	gen_lms_private_key(&sk->priv[0]);
 	gen_lms_public_key(&sk->priv[0], &sk->pubs[0]);
 	for (int i = 1; i < LEVELS; i++) {
