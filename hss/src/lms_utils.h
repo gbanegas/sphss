@@ -34,6 +34,8 @@ void deserialize_lms_public_key(unsigned char *from, lms_public_key *to);
 
 void serialize_lms_public_key(lms_public_key *from, unsigned char *to);
 
+void serialize_lms_signature(lms_signature *from, unsigned char *to);
 
+void deserialize_lms_signature(unsigned char *from, lms_signature *to);
 
 #endif /* LMS_UTILS_H_ */

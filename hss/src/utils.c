@@ -86,7 +86,16 @@ void print_lms_signature(lms_signature *sig) {
 
 }
 
-void print_lms_key(lms_private_key *sk) {
+void print_lms_pub_key(lms_public_key *sk) {
+	printf("LMS type: %u\n", sk->lms_type);
+	printf("LMOTS type: %u\n", sk->lmos_alg_type);
+	printf("param_I: ");
+	print_hex(sk->param_I, 16);
+	printf("K: ");
+	print_hex(sk->K, 32);
+}
+
+void print_lms_priv_key(lms_private_key *sk) {
 	printf("LMS type: %u\n", sk->lms_type);
 	printf("LMOTS type: %u\n", sk->lmos_alg_type);
 	printf("param_I: ");
@@ -105,9 +114,11 @@ void print_hss_private_key(hss_private_key *sk) {
 	printf("\n");
 	printf("levels: %u\n", sk->L);
 
-	for (int i = 0; i < sk->L; i++) {
+	for (int i = 0; i < sk->L - 1; i++) {
 		printf("Level: %d\n", i);
-		print_lms_key(&sk->priv[i]);
+		print_lms_priv_key(&sk->priv[i]);
+		print_lms_pub_key(&sk->pubs[i + 1]);
+		print_lms_signature(&sk->sigs[i]);
 	}
 
 }
@@ -128,4 +139,21 @@ void print_hss_public_key(hss_public_key *pk) {
 	printf("K: ");
 	print_hex(pk->pub.K, 32);
 
+}
+
+void print_hss_signature(hss_signature *sig) {
+	for (int i = 0; i < 8; i++)
+		printf("-");
+	printf("HSS Signature");
+	for (int i = 0; i < 8; i++)
+		printf("-");
+	printf("\n");
+	printf("Nspk: %u\n", sig->Nspk);
+	for (int i = 0; i < sig->Nspk; i++) {
+		print_lms_signature(&sig->signed_pub_key[i]);
+	}
+	for (int i = 0; i < sig->Nspk; i++) {
+		print_lms_pub_key(&sig->pub_key[i]);
+	}
+	print_lms_signature(&sig->sig);
 }

@@ -49,8 +49,6 @@ void compute_node_r(const unsigned char *param_I, unsigned char *k,
 }
 
 void gen_lms_public_key(lms_private_key *sk, lms_public_key *pk) {
-	pk->lms_type = sk->lms_type;
-	pk->lmos_alg_type = sk->lmos_alg_type;
 	int max_digit = 1 << H;
 	unsigned char tmp_S[20] = { 0 };
 	memcpy(tmp_S, sk->param_I, 16);
@@ -151,29 +149,7 @@ void sign_and_compute_path(const unsigned char *message,
 
 }
 
-void serialize_lms_signature(lms_signature *from, unsigned char *to) {
-	put_bigendian(to, from->q, 4);
-	put_bigendian(to + 4, from->lmots_sig.alg_type, 4);
-	memcpy(to + 8, from->lmots_sig.C, 32);
-	memcpy(to + 40, from->lmots_sig.y, 32 * P);
-	put_bigendian(to + (40 + (32 * P)), from->lms_type, 4);
-	for (int i = 0; i < H; i++) {
-		memcpy(to + (44 + (32 * P) + (i * 32)), from->path[i].node, 32);
-	}
 
-}
-
-void deserialize_lms_signature(unsigned char *from, lms_signature *to) {
-	to->q = get_bigendian(from, 4);
-	to->lmots_sig.alg_type = get_bigendian(from + 4, 4);
-	memcpy(to->lmots_sig.C, from + 8, 32);
-	memcpy(to->lmots_sig.y, from + 40, 32 * P);
-	to->lms_type = get_bigendian(from + (40 + (32 * P)), 4);
-	for (int i = 0; i < H; i++) {
-		memcpy(to->path[i].node, from + (44 + (32 * P) + (i * 32)), 32);
-	}
-
-}
 
 int lms_sign_internal(const unsigned char *message, const size_t input_size,
 		lms_private_key *sk, lms_signature *sig) {

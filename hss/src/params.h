@@ -123,7 +123,8 @@ typedef enum lms_algorithm_type {
 #endif
 
 #define CRYPTO_BYTES_LMS (32*P)+N+4+4+4+(32*H)
-#define LMS_PRIV_KEY_SIZE 56
+#define LMS_PRIV_KEY_SIZE 60
+#define LMS_PUB_KEY_SIZE 56
 
 typedef struct lms_path {
 	uint8_t node[32];
@@ -161,7 +162,7 @@ typedef struct lms_private_key {
 
 #define HSS_PUBLIC_KEY (4+4+4+16+32)
 
-#define CRYPTO_BYTES_HSS CRYPTO_BYTES_LMS*LEVELS
+#define CRYPTO_BYTES_HSS CRYPTO_BYTES_LMS*LEVELS+(LMS_PUB_KEY_SIZE*LEVELS) + (CRYPTO_BYTES_LMS*LEVELS)
 
 typedef struct hss_private_key {
 	unsigned int L;
@@ -181,9 +182,11 @@ typedef struct signed_public_key {
 	lms_public_key pub;
 } signed_public_key;
 
-/*typedef struct hss_signature {
- signed_public_key signed_keys<7>;
- lms_signature sig_of_message;
- };*/
+typedef struct hss_signature {
+	unsigned int Nspk;
+	lms_signature signed_pub_key[LEVELS];
+	lms_public_key pub_key[LEVELS];
+	lms_signature sig;
+} hss_signature;
 
 #endif /* PARAMS_H_ */

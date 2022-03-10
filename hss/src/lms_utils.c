@@ -6,11 +6,10 @@
  */
 #include "lms_utils.h"
 
-
 void concat_hash_value(const uint_fast8_t *S, const uint_fast8_t *tmp,
 		uint16_t i, uint8_t j, uint_fast8_t *result) {
 	memcpy(result, S, 20);
-	put_bigendian(result+20, i, 2);
+	put_bigendian(result + 20, i, 2);
 	memcpy(result + 22, &j, 1);
 	memcpy(result + 23, tmp, 32);
 
@@ -73,3 +72,29 @@ void serialize_lms_public_key(lms_public_key *from, unsigned char *to) {
 	memcpy(to + 24, from->K, 32);
 
 }
+
+void serialize_lms_signature(lms_signature *from, unsigned char *to) {
+	put_bigendian(to, from->q, 4);
+	put_bigendian(to + 4, from->lmots_sig.alg_type, 4);
+	memcpy(to + 8, from->lmots_sig.C, 32);
+	memcpy(to + 40, from->lmots_sig.y, 32 * P);
+	put_bigendian(to + (40 + (32 * P)), from->lms_type, 4);
+	for (int i = 0; i < H; i++) {
+		memcpy(to + (44 + (32 * P) + (i * 32)), from->path[i].node, 32);
+	}
+
+}
+
+
+void deserialize_lms_signature(unsigned char *from, lms_signature *to) {
+	to->q = get_bigendian(from, 4);
+	to->lmots_sig.alg_type = get_bigendian(from + 4, 4);
+	memcpy(to->lmots_sig.C, from + 8, 32);
+	memcpy(to->lmots_sig.y, from + 40, 32 * P);
+	to->lms_type = get_bigendian(from + (40 + (32 * P)), 4);
+	for (int i = 0; i < H; i++) {
+		memcpy(to->path[i].node, from + (44 + (32 * P) + (i * 32)), 32);
+	}
+
+}
+

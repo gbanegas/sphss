@@ -24,7 +24,7 @@
 
 int hss_keygen(unsigned char *sk, unsigned char *pk);
 
-int hss_sign(unsigned char *message, size_t input_size, unsigned char *sk,
+int hss_sign(const unsigned char *message, const size_t input_size, unsigned char *sk,
 		unsigned char *signature);
 
 int hss_verify(unsigned char *message, size_t input_size, unsigned char *pk,

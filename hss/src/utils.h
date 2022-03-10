@@ -1,7 +1,6 @@
 #ifndef XMSS_UTILS_H
 #define XMSS_UTILS_H
 
-
 #include <stdio.h>
 
 #include "params.h"
@@ -28,5 +27,9 @@ void print_hss_private_key(hss_private_key *sk);
 
 void print_hss_public_key(hss_public_key *pk);
 
-void print_lms_key(lms_private_key *sk);
+void print_lms_priv_key(lms_private_key *sk);
+
+void print_lms_pub_key(lms_public_key *sk);
+
+void print_hss_signature(hss_signature *sig);
 #endif
