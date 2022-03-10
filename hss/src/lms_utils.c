@@ -38,3 +38,38 @@ unsigned lms_ots_compute_checksum(const unsigned char *Q) {
 	}
 	return sum << LS;
 }
+
+void deserialize_lms_private_key(unsigned char *from, lms_private_key *to) {
+	to->lmos_alg_type = get_bigendian(from, 4);
+	to->lms_type = get_bigendian(from + 4, 4);
+	memcpy(to->param_I, from + 8, 16);
+	memcpy(to->SEED, from + 24, 32);
+	to->q = get_bigendian(from + 56, 4);
+
+}
+
+void serialize_lms_private_key(lms_private_key *from, unsigned char *to) {
+	put_bigendian(to, from->lmos_alg_type, 4);
+	//memcpy(to, &from->lmos_alg_type, 4);
+	put_bigendian(to + 4, from->lms_type, 4);
+	memcpy(to + 8, from->param_I, 16);
+	memcpy(to + 24, from->SEED, 32);
+	put_bigendian(to + 56, from->q, 4);
+
+}
+void deserialize_lms_public_key(unsigned char *from, lms_public_key *to) {
+
+	to->lmos_alg_type = get_bigendian(from, 4);
+	to->lms_type = get_bigendian(from + 4, 4);
+	memcpy(to->param_I, from + 8, 16);
+	memcpy(to->K, from + 24, 32);
+
+}
+
+void serialize_lms_public_key(lms_public_key *from, unsigned char *to) {
+	put_bigendian(to, from->lmos_alg_type, 4);
+	put_bigendian(to + 4, from->lms_type, 4);
+	memcpy(to + 8, from->param_I, 16);
+	memcpy(to + 24, from->K, 32);
+
+}

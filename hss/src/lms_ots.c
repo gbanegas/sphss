@@ -70,7 +70,7 @@ int lms_ots_sign(unsigned char *message, size_t input_size, unsigned char *sk,
 	uint16_t a = D_MESG;
 	lmots_private_key private_key;
 	lmots_signature sig;
-	unsigned char concat_message[86] = { 0 };
+	unsigned char concat_message[1024] = { 0 };
 	memcpy(&private_key.alg_type, sk, 1);
 	memcpy(private_key.S, sk + 1, 20);
 	memcpy(private_key.SEED, sk + 21, 32);
@@ -120,7 +120,7 @@ int lms_ots_sign_internal(const unsigned char *message, const size_t input_size,
 		lmots_private_key *private_key, lmots_signature *sig) {
 	//TODO: add protection against more than one sig
 	uint16_t a = D_MESG;
-	unsigned char concat_message[86] = { 0 };
+	unsigned char concat_message[1024] = { 0 };
 
 	unsigned char C[32] = { 0 };/*{ 0x5e, 0xff, 0x69, 0x57, 0x59, 0x82, 0xc6, 0x41, 0x75, 0xe7, 0xaf, 0x4e, 0xcd,
 	 0x80, 0xd8, 0x23, 0xa4, 0x2f, 0xdf, 0x36, 0x9a, 0xd4, 0x80, 0x0d, 0x0c, 0x11, 0x71, 0xca, 0x67, 0xec,
@@ -168,7 +168,7 @@ int lms_ots_verify(unsigned char *message, size_t input_size, unsigned char *pk,
 	memcpy(&publick_key.alg_type, pk, 1);
 	memcpy(publick_key.K, pk + 1, 32);
 	memcpy(publick_key.S, pk + 33, 20);
-	unsigned char concat_message[86] = { 0 };
+	unsigned char concat_message[1024] = { 0 };
 
 	memcpy(&sig.alg_type, signature, 2);
 	memcpy(sig.C, signature + 2, 32);

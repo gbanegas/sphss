@@ -70,47 +70,14 @@ void gen_lms_public_key(lms_private_key *sk, lms_public_key *pk) {
 
 }
 
-void deserialize_private_key(unsigned char *from, lms_private_key *to) {
-	to->lmos_alg_type = get_bigendian(from, 4);
-	to->lms_type = get_bigendian(from + 4, 4);
-	memcpy(to->param_I, from + 8, 16);
-	memcpy(to->SEED, from + 24, 32);
-	to->q = get_bigendian(from + 56, 4);
 
-}
-
-void serialize_private_key(lms_private_key *from, unsigned char *to) {
-	put_bigendian(to, from->lmos_alg_type, 4);
-	//memcpy(to, &from->lmos_alg_type, 4);
-	put_bigendian(to + 4, from->lms_type, 4);
-	memcpy(to + 8, from->param_I, 16);
-	memcpy(to + 24, from->SEED, 32);
-	put_bigendian(to + 56, from->q, 4);
-
-}
-void deserialize_public_key(unsigned char *from, lms_public_key *to) {
-
-	to->lmos_alg_type = get_bigendian(from, 4);
-	to->lms_type = get_bigendian(from + 4, 4);
-	memcpy(to->param_I, from + 8, 16);
-	memcpy(to->K, from + 24, 32);
-
-}
-
-void serialize_public_key(lms_public_key *from, unsigned char *to) {
-	put_bigendian(to, from->lmos_alg_type, 4);
-	put_bigendian(to + 4, from->lms_type, 4);
-	memcpy(to + 8, from->param_I, 16);
-	memcpy(to + 24, from->K, 32);
-
-}
 int lms_keygen(unsigned char *sk, unsigned char *pk) {
 	lms_private_key private_key;
 	lms_public_key public_key;
 	gen_lms_private_key(&private_key);
 	gen_lms_public_key(&private_key, &public_key);
-	serialize_public_key(&public_key, pk);
-	serialize_private_key(&private_key, sk);
+	serialize_lms_public_key(&public_key, pk);
+	serialize_lms_private_key(&private_key, sk);
 
 	return 1;
 }
@@ -209,11 +176,25 @@ void deserialize_lms_signature(unsigned char *from, lms_signature *to) {
 
 }
 
+int lms_sign_internal(const unsigned char *message, const size_t input_size,
+		lms_private_key *sk, lms_signature *sig) {
+	unsigned int max_digit = 1 << H;
+	if (sk->q > max_digit) {
+		return 0;
+	}
+	sign_and_compute_path(message, input_size, sk, sig);
+	sig->lms_type = sk->lms_type;
+	sig->q = sk->q;
+	sk->q += 1;
+
+	return 1;
+}
+
 int lms_sign(const unsigned char *message, const size_t input_size,
 		unsigned char *sk, unsigned char *signature) {
 	lms_private_key private_key;
 	lms_signature sig;
-	deserialize_private_key(sk, &private_key);
+	deserialize_lms_private_key(sk, &private_key);
 	unsigned int max_digit = 1 << H;
 	if (private_key.q > max_digit) {
 		return 0;
@@ -224,7 +205,7 @@ int lms_sign(const unsigned char *message, const size_t input_size,
 	private_key.q += 1;
 
 	serialize_lms_signature(&sig, signature);
-	serialize_private_key(&private_key, sk);
+	serialize_lms_private_key(&private_key, sk);
 
 	return 1;
 }
@@ -278,7 +259,7 @@ int lms_verify(const unsigned char *message, const size_t input_size,
 	lms_public_key public_key;
 	unsigned char lmots_pk[32] = { 0 };
 	deserialize_lms_signature(signature, &sig);
-	deserialize_public_key(pk, &public_key);
+	deserialize_lms_public_key(pk, &public_key);
 	//TODO: add the verifications
 	recover_lmots_public_key(&public_key, &sig, message, input_size, lmots_pk);
 	unsigned int node_pos = sig.q + (1 << H);

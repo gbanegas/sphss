@@ -26,4 +26,14 @@ uint8_t lms_ots_coeff(const unsigned char *Q, int i, int w);
 
 unsigned lms_ots_compute_checksum(const unsigned char *Q);
 
+void deserialize_lms_private_key(unsigned char *from, lms_private_key *to);
+
+void serialize_lms_private_key(lms_private_key *from, unsigned char *to);
+
+void deserialize_lms_public_key(unsigned char *from, lms_public_key *to);
+
+void serialize_lms_public_key(lms_public_key *from, unsigned char *to);
+
+
+
 #endif /* LMS_UTILS_H_ */

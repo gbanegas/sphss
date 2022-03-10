@@ -85,3 +85,46 @@ void print_lms_signature(lms_signature *sig) {
 	printf("\n");
 
 }
+
+void print_lms_key(lms_private_key *sk) {
+	printf("LMS type: %u\n", sk->lms_type);
+	printf("LMOTS type: %u\n", sk->lmos_alg_type);
+	printf("param_I: ");
+	print_hex(sk->param_I, 16);
+	printf("SEED: ");
+	print_hex(sk->SEED, 32);
+	printf("q: %u\n", sk->q);
+}
+
+void print_hss_private_key(hss_private_key *sk) {
+	for (int i = 0; i < 8; i++)
+		printf("-");
+	printf("HSS Private Key");
+	for (int i = 0; i < 8; i++)
+		printf("-");
+	printf("\n");
+
+	for (int i = 0; i < LEVELS; i++) {
+		printf("Level: %d\n", i);
+		print_lms_key(&sk->priv[i]);
+	}
+
+}
+
+void print_hss_public_key(hss_public_key *pk) {
+	for (int i = 0; i < 8; i++)
+		printf("-");
+	printf("HSS Public Key");
+	for (int i = 0; i < 8; i++)
+		printf("-");
+	printf("\n");
+
+	printf("levels: %u\n", pk->L);
+	printf("LMS type: %u\n", pk->pub.lms_type);
+	printf("LMOTS type: %u\n", pk->pub.lmos_alg_type);
+	printf("param_I: ");
+	print_hex(pk->pub.param_I, 16);
+	printf("K: ");
+	print_hex(pk->pub.K, 32);
+
+}

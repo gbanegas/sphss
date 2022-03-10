@@ -17,6 +17,9 @@
 #include "randombytes.h"
 #include "params.h"
 #include "hash.h"
+#include "lms_ots.h"
+#include "lms_utils.h"
+#include "lms.h"
 #include "fips202.h"
 
 int hss_keygen(unsigned char *sk, unsigned char *pk);

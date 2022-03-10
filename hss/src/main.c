@@ -15,6 +15,7 @@
 #include "params.h"
 #include "lms_ots.h"
 #include "lms.h"
+#include "hss.h"
 
 int main(void) {
 	puts("!!!Hello World!!!"); /* prints !!!Hello World!!! */
@@ -25,17 +26,17 @@ int main(void) {
 	unsigned char message[5] = "teste";
 	unsigned char signature[CRYPTO_BYTES_LMS] = { 0 };
 	memset(signature, 0, CRYPTO_BYTES_LMS);
-	lms_keygen(sk, pk);
-	printf("sk:\n");
+	hss_keygen(sk, pk);
+	/*printf("sk:\n");
 	print_hex(sk, 60);
 	printf("pk: \n");
-	print_hex(pk, 56);
+	print_hex(pk, 56);*/
 
-	lms_sign(message, 5, sk, signature);
+	/*lms_sign(message, 5, sk, signature);
 	//print_hex(signature, CRYPTO_BYTES_LMS);
 
 	int ret = lms_verify(message, 5, pk, signature);
-	printf("valid ? %d\n", ret);
+	printf("valid ? %d\n", ret);*/
 	/*
 	 lms_ots_sign(message, 5, sk, signature);
 
