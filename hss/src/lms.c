@@ -70,7 +70,6 @@ void gen_lms_public_key(lms_private_key *sk, lms_public_key *pk) {
 
 }
 
-
 int lms_keygen(unsigned char *sk, unsigned char *pk) {
 	lms_private_key private_key;
 	lms_public_key public_key;
