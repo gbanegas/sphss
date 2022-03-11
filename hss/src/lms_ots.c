@@ -11,6 +11,7 @@ void gen_lmots_private_key(lmots_private_key *private_key) {
 
 	randombytes(private_key->S, 20);
 	randombytes(private_key->SEED, 32);
+	private_key->remain_sign = 1;
 
 }
 
@@ -45,6 +46,32 @@ void gen_lmots_public_key(lmots_private_key *sk, lmots_public_key *pk) {
 
 }
 
+void serialize_lmsots_private_key(lmots_private_key *from, unsigned char *to) {
+	ull_to_bytes(to, from->alg_type, 4);
+	memcpy(to + 4, from->S, 20);
+	memcpy(to + 24, from->SEED, 32);
+	ull_to_bytes(to + 56, from->remain_sign, 4);
+}
+
+void deserialize_lmsots_private_key(unsigned char *from, lmots_private_key *to) {
+	to->alg_type = bytes_to_ull(from, 4);
+	memcpy(to->S, from + 4, 20);
+	memcpy(to->SEED, from + 24, 32);
+	to->remain_sign = bytes_to_ull(from + 56, 4);
+}
+
+void serialize_lmsots_public_key(lmots_public_key *from, unsigned char *to) {
+	ull_to_bytes(to, from->alg_type, 4);
+	memcpy(to + 4, from->K, 32);
+	memcpy(to + 36, from->S, 20);
+}
+
+void deserialize_lmsots_public_key(unsigned char *from, lmots_public_key *to) {
+	to->alg_type = bytes_to_ull(from, 4);
+	memcpy(to->K, from + 4, 32);
+	memcpy(to->S, from + 36, 20);
+}
+
 int lms_ots_keygen(unsigned char *sk, unsigned char *pk) {
 	lmots_private_key private_key;
 	lmots_public_key publick_key;
@@ -52,42 +79,44 @@ int lms_ots_keygen(unsigned char *sk, unsigned char *pk) {
 	gen_lmots_private_key(&private_key);
 	gen_lmots_public_key(&private_key, &publick_key);
 
-	memcpy(sk, &private_key.alg_type, 1);
-	memcpy(sk + 1, private_key.S, 20);
-	memcpy(sk + 21, private_key.SEED, 32);
-	memcpy(sk + 53, &private_key.remain_sign, 1);
-
-	memcpy(pk, &publick_key.alg_type, 1);
-	memcpy(pk + 1, publick_key.K, 32);
-	memcpy(pk + 33, publick_key.S, 20);
+	serialize_lmsots_private_key(&private_key, sk);
+	serialize_lmsots_public_key(&publick_key, pk);
 
 	return 0;
 }
 
+void serialize_lmsots_signature(lmots_signature *from, unsigned char *to) {
+	ull_to_bytes(to, from->alg_type, 4);
+	memcpy(to + 4, from->C, 32);
+	memcpy(to + 36, from->y, P * 32);
+}
+
+void deserialize_lmsots_signature(unsigned char *from, lmots_signature *to) {
+	to->alg_type = bytes_to_ull(from, 4);
+	memcpy(to->C, from + 4, 32);
+	memcpy(to->y, from + 36, P * 32);
+}
+
 int lms_ots_sign(unsigned char *message, size_t input_size, unsigned char *sk,
 		unsigned char *signature) {
-	//TODO: add protection against more than one sig
 	lmots_private_key private_key;
 	lmots_signature sig;
-	lms_ots_sign_internal(message, input_size, &private_key, &sig);
-//TODO: update key
-	memcpy(signature, &sig.alg_type, 2);
-	memcpy(signature + 2, sig.C, 32);
-	memcpy(signature + 34, sig.y, P * 32);
-	return 1;
+	deserialize_lmsots_private_key(sk, &private_key);
+	int ret = lms_ots_sign_internal(message, input_size, &private_key, &sig);
+	if (ret == 1)
+		serialize_lmsots_signature(&sig, signature);
+	return ret;
 }
 
 int lms_ots_sign_internal(const unsigned char *message, const size_t input_size,
 		lmots_private_key *private_key, lmots_signature *sig) {
-	//TODO: add protection against more than one sig
-
+	if (private_key->remain_sign != 1)
+		return err_private_key_exhausted;
 	uint16_t a = D_MESG;
 	unsigned char concat_message[54 + input_size];
 	memset(concat_message, 0, 54 + input_size);
 
-	unsigned char C[32] = { 0 };/*{ 0x5e, 0xff, 0x69, 0x57, 0x59, 0x82, 0xc6, 0x41, 0x75, 0xe7, 0xaf, 0x4e, 0xcd,
-	 0x80, 0xd8, 0x23, 0xa4, 0x2f, 0xdf, 0x36, 0x9a, 0xd4, 0x80, 0x0d, 0x0c, 0x11, 0x71, 0xca, 0x67, 0xec,
-	 0x91, 0x64 };*/
+	unsigned char C[32] = { 0 };
 	randombytes(C, 32);
 
 	memcpy(sig->C, C, 32);
@@ -128,15 +157,15 @@ int lms_ots_verify(unsigned char *message, size_t input_size, unsigned char *pk,
 	uint16_t a = D_MESG;
 	lmots_public_key publick_key;
 	lmots_signature sig;
-	memcpy(&publick_key.alg_type, pk, 1);
-	memcpy(publick_key.K, pk + 1, 32);
-	memcpy(publick_key.S, pk + 33, 20);
+	deserialize_lmsots_public_key(pk, &publick_key);
+
 	unsigned char concat_message[54 + input_size];
 	memset(concat_message, 0, 54 + input_size);
 
-	memcpy(&sig.alg_type, signature, 2);
-	memcpy(sig.C, signature + 2, 32);
-	memcpy(sig.y, signature + 34, P * 32);
+	deserialize_lmsots_signature(signature, &sig);
+
+	if (sig.alg_type != publick_key.alg_type)
+		return err_algorithm_mismatch;
 	/*printf("y: ");
 	 print_hex(sig.y, P * 32);*/
 

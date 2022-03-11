@@ -61,6 +61,8 @@ typedef enum lmots_algorithm_type {
 #endif
 
 #define CRYPTO_BYTES_LMOS (32*P)+N+4
+#define LMSOTS_PUB_KEY_SIZE 56
+#define LMSOTS_PRIV_KEY_SIZE 60
 
 typedef struct lmots_signature {
 	lmots_algorithm_type alg_type;
@@ -72,7 +74,7 @@ typedef struct lmots_private_key {
 	lmots_algorithm_type alg_type;
 	unsigned char S[20];
 	unsigned char SEED[32];
-	uint8_t remain_sign;
+	uint32_t remain_sign;
 } lmots_private_key;
 
 typedef struct lmots_public_key {

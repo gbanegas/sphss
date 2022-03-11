@@ -1,13 +1,3 @@
-/*
- ============================================================================
- Name        : main.c
- Author      : Gustavo Banegas
- Version     :
- Copyright   : Your copyright notice
- Description : Hello World in C, Ansi-style
- ============================================================================
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -17,20 +7,31 @@
 #include "lms.h"
 #include "hss.h"
 
+#define MESSAGE_SIZE 5
 int main(void) {
-	puts("!!!Hello World!!!"); /* prints !!!Hello World!!! */
-	unsigned char sk[HSS_PRIVATE_KEY];
-	memset(sk, 0, 60);
-	unsigned char pk[HSS_PUBLIC_KEY];
-	memset(pk, 0, 60);
-	unsigned char message[5] = "teste";
-	unsigned char signature[CRYPTO_BYTES_HSS] = { 0 };
-	memset(signature, 0, CRYPTO_BYTES_HSS);
-	hss_keygen(sk, pk);
+	unsigned char sk[LMSOTS_PRIV_KEY_SIZE];
+	memset(sk, 0, LMSOTS_PRIV_KEY_SIZE);
+	unsigned char pk[LMSOTS_PUB_KEY_SIZE];
+	memset(pk, 0, LMSOTS_PUB_KEY_SIZE);
 
-	hss_sign(message, 5, sk, signature);
-	int ret = hss_verify(message, 5, pk, signature);
+	unsigned char message[MESSAGE_SIZE] = "teste";
+	unsigned char signature[CRYPTO_BYTES_LMOS] = { 0 };
+	memset(signature, 0, CRYPTO_BYTES_LMOS);
+
+	lms_ots_keygen(sk, pk);
+
+	int ret_sign = lms_ots_sign(message, MESSAGE_SIZE, sk, signature);
+	printf("ret_sign ? %d\n", ret_sign);
+
+	int ret = lms_ots_verify(message, MESSAGE_SIZE, pk, signature);
+
 	printf("valid ? %d\n", ret);
+
+	/*hss_keygen(sk, pk);
+
+	 hss_sign(message, 5, sk, signature);
+	 int ret = hss_verify(message, 5, pk, signature);
+	 printf("valid ? %d\n", ret);*/
 	//print_hex(signature, CRYPTO_BYTES_HSS);
 	/*printf("sk:\n");
 	 print_hex(sk, 60);

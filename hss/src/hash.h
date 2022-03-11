@@ -13,5 +13,6 @@
 
 void hash(const unsigned char *input, size_t inlen, unsigned char *output);
 
-void hash_update(const unsigned char *input, const size_t inlen,  sha3_256incctx *ctx);
+void hash_update(const unsigned char *input, const size_t inlen,
+		sha3_256incctx *ctx);
 #endif /* HASH_H_ */
