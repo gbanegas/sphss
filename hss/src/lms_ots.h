@@ -19,7 +19,6 @@
 #include "fips202.h"
 #include "lms_utils.h"
 
-
 int lms_ots_keygen(unsigned char *sk, unsigned char *pk);
 
 int lms_ots_sign(unsigned char *message, size_t input_size, unsigned char *sk,

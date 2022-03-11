@@ -67,50 +67,9 @@ int lms_ots_keygen(unsigned char *sk, unsigned char *pk) {
 int lms_ots_sign(unsigned char *message, size_t input_size, unsigned char *sk,
 		unsigned char *signature) {
 	//TODO: add protection against more than one sig
-	uint16_t a = D_MESG;
 	lmots_private_key private_key;
 	lmots_signature sig;
-	unsigned char concat_message[54 + input_size];
-	memset(concat_message, 0, 54 + input_size);
-
-	memcpy(&private_key.alg_type, sk, 1);
-	memcpy(private_key.S, sk + 1, 20);
-	memcpy(private_key.SEED, sk + 21, 32);
-	memcpy(&private_key.remain_sign, sk + 53, sizeof(size_t));
-
-	unsigned char C[32] = { 0 };/*{ 0x31, 0xe2, 0x99, 0x69, 0x84, 0x91, 0x4c, 0xa2,
-	 0xe0, 0xa8, 0xc8, 0x34, 0x9d, 0x88, 0xbd, 0xbe, 0x09, 0x70, 0xb5,
-	 0x89, 0x04, 0x4f, 0x20, 0xbf, 0x89, 0xcb, 0x8f, 0xe9, 0xd6, 0x4d,
-	 0x3d, 0x90 };*/
-	randombytes(C, 32);
-
-	memcpy(sig.C, C, 32);
-	sig.alg_type = private_key.alg_type;
-	memcpy(concat_message, private_key.S, 20);
-	memcpy(concat_message + 20, &a, 2);
-	memcpy(concat_message + 22, C, 32);
-	memcpy(concat_message + 54, message, input_size);
-	unsigned char hash[34] = { 0 };
-	sha3_256(hash, concat_message, 54 + input_size);
-	uint16_t checksum_result = 0;
-	checksum_result = lms_ots_compute_checksum(hash);
-	uint8_t buff_check[2] = { 0 };
-	put_bigendian(buff_check, checksum_result, 2);
-	memcpy(hash + 32, buff_check, 2);
-	memset(sig.y, 0, P * 32);
-	unsigned char concatenated[55] = { 0 };
-	for (int i = 0; i < P; i++) {
-		unsigned char tmp[32] = { 0 };
-		concat_hash_value(private_key.S, private_key.SEED, i + 1, D_PRG,
-				concatenated);
-		sha3_256(tmp, concatenated, 55);
-		for (uint16_t j = 0; j < lms_ots_coeff(hash, i, W); j++) {
-			concat_hash_value(private_key.S, tmp, i, j, concatenated);
-			sha3_256(tmp, concatenated, 55);
-		}
-		memcpy(sig.y + (32 * i), tmp, 32);
-	}
-
+	lms_ots_sign_internal(message, input_size, &private_key, &sig);
 //TODO: update key
 	memcpy(signature, &sig.alg_type, 2);
 	memcpy(signature + 2, sig.C, 32);
@@ -121,6 +80,7 @@ int lms_ots_sign(unsigned char *message, size_t input_size, unsigned char *sk,
 int lms_ots_sign_internal(const unsigned char *message, const size_t input_size,
 		lmots_private_key *private_key, lmots_signature *sig) {
 	//TODO: add protection against more than one sig
+
 	uint16_t a = D_MESG;
 	unsigned char concat_message[54 + input_size];
 	memset(concat_message, 0, 54 + input_size);
@@ -158,7 +118,7 @@ int lms_ots_sign_internal(const unsigned char *message, const size_t input_size,
 	}
 
 //TODO: update key
-
+	private_key->remain_sign -= 1;
 	return 1;
 }
 

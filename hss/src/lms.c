@@ -168,18 +168,20 @@ int lms_sign(const unsigned char *message, const size_t input_size,
 	lms_private_key private_key;
 	lms_signature sig;
 	deserialize_lms_private_key(sk, &private_key);
-	unsigned int max_digit = 1 << H;
-	if (private_key.q > max_digit) {
-		return 0;
-	}
-	sign_and_compute_path(message, input_size, &private_key, &sig);
-	sig.lms_type = private_key.lms_type;
-	sig.q = private_key.q;
-	private_key.q += 1;
+	lms_sign_internal(message, input_size, &private_key, &sig);
 
+	/*unsigned int max_digit = 1 << H;
+	 if (private_key.q > max_digit) {
+	 return 0;
+	 }
+	 sign_and_compute_path(message, input_size, &private_key, &sig);
+	 sig.lms_type = private_key.lms_type;
+	 sig.q = private_key.q;
+	 private_key.q += 1;
+
+	 */
 	serialize_lms_signature(&sig, signature);
 	serialize_lms_private_key(&private_key, sk);
-
 	return 1;
 }
 
