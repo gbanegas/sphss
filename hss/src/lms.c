@@ -25,7 +25,7 @@ void compute_node_r(const unsigned char *param_I, unsigned char *k,
 		uint16_t value = D_LEAF;
 		uint8_t tmp[55] = { 0 };
 		memcpy(tmp, param_I, 16);
-		put_bigendian(tmp + 16, r, 4);
+		ull_to_bytes(tmp + 16, r, 4);
 		memcpy(tmp + 20, &value, 2);
 		memcpy(tmp + 22, pub_keys[r - max_digit].K, 32);
 		sha3_256(k, tmp, 54);
@@ -38,7 +38,7 @@ void compute_node_r(const unsigned char *param_I, unsigned char *k,
 		compute_node_r(param_I, tmp_2, priv_keys, pub_keys, (2 * r) + 1);
 		uint8_t tmp[87] = { 0 };
 		memcpy(tmp, param_I, 16);
-		put_bigendian(tmp + 16, r, 4);
+		ull_to_bytes(tmp + 16, r, 4);
 		memcpy(tmp + 20, &value, 2);
 		memcpy(tmp + 22, tmp_1, 32);
 		memcpy(tmp + 54, tmp_2, 32);
@@ -55,7 +55,7 @@ void keygen_lms_public_key(lms_private_key *sk, lms_public_key *pk) {
 	lmots_private_key priv_keys[(1 << H)];
 	lmots_public_key pub_keys[(1 << H)];
 	for (unsigned int j = 0; j < max_digit; j++) {
-		put_bigendian(tmp_S + 16, j, 4);
+		ull_to_bytes(tmp_S + 16, j, 4);
 		memcpy(priv_keys[j].SEED, sk->SEED, 32);
 		memcpy(priv_keys[j].S, tmp_S, 20);
 		priv_keys[j].alg_type = sk->lmos_alg_type;
@@ -87,7 +87,7 @@ void compute_tree(const unsigned char *param_I, unsigned char *k,
 		uint16_t value = D_LEAF;
 		uint8_t tmp[55] = { 0 };
 		memcpy(tmp, param_I, 16);
-		put_bigendian(tmp + 16, r, 4);
+		ull_to_bytes(tmp + 16, r, 4);
 		memcpy(tmp + 20, &value, 2);
 		memcpy(tmp + 22, pub_keys[r - max_digit].K, 32);
 		sha3_256(k, tmp, 54);
@@ -101,7 +101,7 @@ void compute_tree(const unsigned char *param_I, unsigned char *k,
 		compute_tree(param_I, tmp_2, priv_keys, pub_keys, (2 * r) + 1, nodes);
 		uint8_t tmp[87] = { 0 };
 		memcpy(tmp, param_I, 16);
-		put_bigendian(tmp + 16, r, 4);
+		ull_to_bytes(tmp + 16, r, 4);
 		memcpy(tmp + 20, &value, 2);
 		memcpy(tmp + 22, tmp_1, 32);
 		memcpy(tmp + 54, tmp_2, 32);
@@ -137,7 +137,7 @@ void sign_and_compute_path(const unsigned char *message,
 	lmots_private_key priv_keys[(1 << H)];
 	lmots_public_key pub_keys[(1 << H)];
 	for (int j = 0; j < max_digit; j++) {
-		put_bigendian(tmp_S + 16, j, 4);
+		ull_to_bytes(tmp_S + 16, j, 4);
 		memcpy(priv_keys[j].SEED, sk->SEED, 32);
 		memcpy(priv_keys[j].S, tmp_S, 20);
 		priv_keys[j].alg_type = sk->lmos_alg_type;
@@ -191,7 +191,7 @@ void recover_lmots_public_key(lms_public_key *pk, lms_signature *sig,
 	uint16_t a = D_MESG;
 	unsigned char tmp_S[20] = { 0 };
 	memcpy(tmp_S, pk->param_I, 16);
-	put_bigendian(tmp_S + 16, sig->q, 4);
+	ull_to_bytes(tmp_S + 16, sig->q, 4);
 
 	unsigned char concat_message[54 + input_size];
 	memset(concat_message, 0, 54 + input_size);
@@ -204,7 +204,7 @@ void recover_lmots_public_key(lms_public_key *pk, lms_signature *sig,
 	sha3_256(hash, concat_message, 54 + input_size);
 	uint16_t checksum_result = 0;
 	checksum_result = lms_ots_compute_checksum(hash);
-	put_bigendian(hash + 32, checksum_result, 2);
+	ull_to_bytes(hash + 32, checksum_result, 2);
 
 	sha3_256incctx ctx;
 	uint16_t D_public = 0x8080;
@@ -250,23 +250,23 @@ int lms_verify_internal(const unsigned char *message, const size_t input_size,
 	unsigned int node_pos = sig->q + (1 << H);
 	unsigned char tmp[87] = { 0 };
 	memcpy(tmp, public_key->param_I, 16);
-	put_bigendian(tmp + 16, node_pos, 4);
-	put_bigendian(tmp + 20, D_LEAF, 2);
+	ull_to_bytes(tmp + 16, node_pos, 4);
+	ull_to_bytes(tmp + 20, D_LEAF, 2);
 	memcpy(tmp + 22, lmots_pk, 32);
 	unsigned char res[32] = { 0 };
 	sha3_256(res, tmp, 54);
 	for (int i = 0; i < H; i++) {
 		if ((node_pos % 2) == 0) {
 			memcpy(tmp, public_key->param_I, 16);
-			put_bigendian(tmp + 16, (node_pos / 2), 4);
-			put_bigendian(tmp + 20, D_INTR, 2);
+			ull_to_bytes(tmp + 16, (node_pos / 2), 4);
+			ull_to_bytes(tmp + 20, D_INTR, 2);
 			memcpy(tmp + 22, res, 32);
 			memcpy(tmp + 54, sig->path[i].node, 32);
 
 		} else {
 			memcpy(tmp, public_key->param_I, 16);
-			put_bigendian(tmp + 16, (node_pos / 2), 4);
-			put_bigendian(tmp + 20, D_INTR, 2);
+			ull_to_bytes(tmp + 16, (node_pos / 2), 4);
+			ull_to_bytes(tmp + 20, D_INTR, 2);
 			memcpy(tmp + 22, sig->path[i].node, 32);
 			memcpy(tmp + 54, res, 32);
 

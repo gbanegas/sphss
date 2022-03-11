@@ -3,31 +3,7 @@
 /**
  * Converts the value of 'in' to 'outlen' bytes in big-endian byte order.
  */
-void ull_to_bytes(unsigned char *out, unsigned int outlen,
-		unsigned long long in) {
-	int i;
-
-	/* Iterate over out in decreasing order, for big-endianness. */
-	for (i = outlen - 1; i >= 0; i--) {
-		out[i] = in & 0xff;
-		in = in >> 8;
-	}
-}
-
-/**
- * Converts the inlen bytes in 'in' from big-endian byte order to an integer.
- */
-unsigned long long bytes_to_ull(const unsigned char *in, unsigned int inlen) {
-	unsigned long long retval = 0;
-	unsigned int i;
-
-	for (i = 0; i < inlen; i++) {
-		retval |= ((unsigned long long) in[i]) << (8 * (inlen - 1 - i));
-	}
-	return retval;
-}
-
-void put_bigendian(void *target, unsigned long long value, size_t bytes) {
+void ull_to_bytes(void *target, unsigned long long value, size_t bytes) {
 	unsigned char *b = target;
 	int i;
 
@@ -37,7 +13,10 @@ void put_bigendian(void *target, unsigned long long value, size_t bytes) {
 	}
 }
 
-unsigned long long get_bigendian(const void *target, size_t bytes) {
+/**
+ * Converts the inlen bytes in 'in' from big-endian byte order to an integer.
+ */
+unsigned long long bytes_to_ull(const void *target, size_t bytes) {
 	const unsigned char *b = target;
 	unsigned long long result = 0;
 	int i;
@@ -49,6 +28,9 @@ unsigned long long get_bigendian(const void *target, size_t bytes) {
 	return result;
 }
 
+/**
+ * Print the inlen bytes in hex.
+ */
 void print_hex(unsigned char *array, unsigned int inlen) {
 	printf("0x");
 	for (unsigned int i = 0; i < inlen; i++) {
@@ -68,6 +50,10 @@ void print_lmots_signature(lmots_signature *sig) {
 
 }
 
+/**
+ * Print the lms_signature in hex.
+ */
+
 void print_lms_signature(lms_signature *sig) {
 	for (int i = 0; i < 32; i++) {
 		printf("-");
@@ -86,6 +72,10 @@ void print_lms_signature(lms_signature *sig) {
 
 }
 
+/**
+ * Print the lms_public_key in hex.
+ */
+
 void print_lms_pub_key(lms_public_key *sk) {
 	printf("LMS type: %u\n", sk->lms_type);
 	printf("LMOTS type: %u\n", sk->lmos_alg_type);
@@ -95,6 +85,9 @@ void print_lms_pub_key(lms_public_key *sk) {
 	print_hex(sk->K, 32);
 }
 
+/**
+ * Print the lms_private_key in hex.
+ */
 void print_lms_priv_key(lms_private_key *sk) {
 	printf("LMS type: %u\n", sk->lms_type);
 	printf("LMOTS type: %u\n", sk->lmos_alg_type);
@@ -105,6 +98,30 @@ void print_lms_priv_key(lms_private_key *sk) {
 	printf("q: %u\n", sk->q);
 }
 
+/**
+ * Print the hss_signature in hex.
+ */
+
+void print_hss_signature(hss_signature *sig) {
+	for (int i = 0; i < 8; i++)
+		printf("-");
+	printf("HSS Signature");
+	for (int i = 0; i < 8; i++)
+		printf("-");
+	printf("\n");
+	printf("Nspk: %u\n", sig->Nspk);
+	for (int i = 0; i < sig->Nspk; i++) {
+		print_lms_signature(&sig->signed_pub_key[i]);
+	}
+	for (int i = 0; i < sig->Nspk; i++) {
+		print_lms_pub_key(&sig->pub_key[i]);
+	}
+	print_lms_signature(&sig->sig);
+}
+
+/**
+ * Print the hss_private_key in hex.
+ */
 void print_hss_private_key(hss_private_key *sk) {
 	for (int i = 0; i < 8; i++)
 		printf("-");
@@ -122,6 +139,10 @@ void print_hss_private_key(hss_private_key *sk) {
 	}
 
 }
+
+/**
+ * Print the hss_public_key in hex.
+ */
 
 void print_hss_public_key(hss_public_key *pk) {
 	for (int i = 0; i < 8; i++)
@@ -141,19 +162,3 @@ void print_hss_public_key(hss_public_key *pk) {
 
 }
 
-void print_hss_signature(hss_signature *sig) {
-	for (int i = 0; i < 8; i++)
-		printf("-");
-	printf("HSS Signature");
-	for (int i = 0; i < 8; i++)
-		printf("-");
-	printf("\n");
-	printf("Nspk: %u\n", sig->Nspk);
-	for (int i = 0; i < sig->Nspk; i++) {
-		print_lms_signature(&sig->signed_pub_key[i]);
-	}
-	for (int i = 0; i < sig->Nspk; i++) {
-		print_lms_pub_key(&sig->pub_key[i]);
-	}
-	print_lms_signature(&sig->sig);
-}

@@ -33,14 +33,14 @@ void gen_hss_public_key(hss_private_key *sk, hss_public_key *pk) {
 void deserialize_hss_private_key(unsigned char *sk,
 		hss_private_key *private_key) {
 
-	private_key->L = get_bigendian(sk, 4);
+	private_key->L = bytes_to_ull(sk, 4);
 	for (unsigned int i = 0; i < private_key->L; i++) {
-		private_key->priv[i].lmos_alg_type = get_bigendian(sk + 4 + (i * 64),
+		private_key->priv[i].lmos_alg_type = bytes_to_ull(sk + 4 + (i * 64),
 				4);
-		private_key->priv[i].lms_type = get_bigendian(sk + 8 + (i * 64), 4);
+		private_key->priv[i].lms_type = bytes_to_ull(sk + 8 + (i * 64), 4);
 		memcpy(private_key->priv[i].param_I, sk + 12 + (i * 64), 16);
 		memcpy(private_key->priv[i].SEED, sk + 28 + (i * 64), 32);
-		private_key->priv[i].q = get_bigendian(sk + 60 + (i * 64), 4);
+		private_key->priv[i].q = bytes_to_ull(sk + 60 + (i * 64), 4);
 
 	}
 	for (unsigned int i = 1; i < private_key->L; i++) {
@@ -56,13 +56,13 @@ void deserialize_hss_private_key(unsigned char *sk,
 }
 
 void serialize_hss_private_key(hss_private_key *private_key, unsigned char *sk) {
-	put_bigendian(sk, private_key->L, 4);
+	ull_to_bytes(sk, private_key->L, 4);
 	for (unsigned int i = 0; i < private_key->L; i++) {
-		put_bigendian(sk + 4 + (i * 64), private_key->priv[i].lmos_alg_type, 4);
-		put_bigendian(sk + 8 + (i * 64), private_key->priv[i].lms_type, 4);
+		ull_to_bytes(sk + 4 + (i * 64), private_key->priv[i].lmos_alg_type, 4);
+		ull_to_bytes(sk + 8 + (i * 64), private_key->priv[i].lms_type, 4);
 		memcpy(sk + 12 + (i * 64), private_key->priv[i].param_I, 16);
 		memcpy(sk + 28 + (i * 64), private_key->priv[i].SEED, 32);
-		put_bigendian(sk + 60 + (i * 64), private_key->priv[i].q, 4);
+		ull_to_bytes(sk + 60 + (i * 64), private_key->priv[i].q, 4);
 
 	}
 	for (unsigned int i = 1; i < private_key->L; i++) {
@@ -76,17 +76,17 @@ void serialize_hss_private_key(hss_private_key *private_key, unsigned char *sk) 
 }
 
 void deserialize_hss_public_key(unsigned char *pk, hss_public_key *public_key) {
-	public_key->L = get_bigendian(pk, 4);
-	public_key->pub.lmos_alg_type = get_bigendian(pk + 4, 4);
-	public_key->pub.lms_type = get_bigendian(pk + 8, 4);
+	public_key->L = bytes_to_ull(pk, 4);
+	public_key->pub.lmos_alg_type = bytes_to_ull(pk + 4, 4);
+	public_key->pub.lms_type = bytes_to_ull(pk + 8, 4);
 	memcpy(public_key->pub.param_I, pk + 12, 16);
 	memcpy(public_key->pub.K, pk + 28, 32);
 }
 
 void serialize_hss_public_key(hss_public_key *public_key, unsigned char *pk) {
-	put_bigendian(pk, public_key->L, 4);
-	put_bigendian(pk + 4, public_key->pub.lmos_alg_type, 4);
-	put_bigendian(pk + 8, public_key->pub.lms_type, 4);
+	ull_to_bytes(pk, public_key->L, 4);
+	ull_to_bytes(pk + 4, public_key->pub.lmos_alg_type, 4);
+	ull_to_bytes(pk + 8, public_key->pub.lms_type, 4);
 	memcpy(pk + 12, public_key->pub.param_I, 16);
 	memcpy(pk + 28, public_key->pub.K, 32);
 }
@@ -110,7 +110,7 @@ int hss_keygen(unsigned char *sk, unsigned char *pk) {
 
 void serialize_hss_signature(hss_signature *from, unsigned char *to) {
 
-	put_bigendian(to, from->Nspk, 4);
+	ull_to_bytes(to, from->Nspk, 4);
 	for (int i = 0; i < from->Nspk; i++) {
 		memcpy(to + 4 + (i * sizeof(lms_signature)), &from->signed_pub_key[i],
 				sizeof(lms_signature));
@@ -129,7 +129,7 @@ void serialize_hss_signature(hss_signature *from, unsigned char *to) {
 
 void deserialize_hss_signature(unsigned char *from, hss_signature *to) {
 
-	to->Nspk = get_bigendian(from, 4);
+	to->Nspk = bytes_to_ull(from, 4);
 	for (int i = 0; i < to->Nspk; i++) {
 		memcpy(&to->signed_pub_key[i], from + 4 + (i * sizeof(lms_signature)),
 				sizeof(lms_signature));

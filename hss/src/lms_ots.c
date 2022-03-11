@@ -101,7 +101,7 @@ int lms_ots_sign_internal(const unsigned char *message, const size_t input_size,
 	uint16_t checksum_result = 0;
 	checksum_result = lms_ots_compute_checksum(hash);
 	uint8_t buff_check[2] = { 0 };
-	put_bigendian(buff_check, checksum_result, 2);
+	ull_to_bytes(buff_check, checksum_result, 2);
 	memcpy(hash + 32, buff_check, 2);
 	memset(sig->y, 0, P * 32);
 	unsigned char concatenated[55] = { 0 };
@@ -150,7 +150,7 @@ int lms_ots_verify(unsigned char *message, size_t input_size, unsigned char *pk,
 	uint16_t checksum_result = 0;
 	checksum_result = lms_ots_compute_checksum(hash);
 	uint8_t buff_check[2] = { 0 };
-	put_bigendian(buff_check, checksum_result, 2);
+	ull_to_bytes(buff_check, checksum_result, 2);
 	memcpy(hash + 32, buff_check, 2);
 
 	sha3_256incctx ctx;
