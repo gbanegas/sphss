@@ -7,7 +7,7 @@
 
 #include "hss.h"
 
-void gen_hss_private_key(hss_private_key *sk) {//https://datatracker.ietf.org/doc/html/rfc8554#section-6.1
+void gen_hss_private_key(hss_private_key *sk) { //https://datatracker.ietf.org/doc/html/rfc8554#section-6.1
 	sk->remain = (1 << (LEVELS * H));
 	sk->L = LEVELS;
 	gen_lms_private_key(&sk->priv[0]);
@@ -108,7 +108,42 @@ int hss_keygen(unsigned char *sk, unsigned char *pk) {
 	return 1;
 }
 
+void serialize_hss_signature(hss_signature *from, unsigned char *to) {
 
+	put_bigendian(to, from->Nspk, 4);
+	for (int i = 0; i < from->Nspk; i++) {
+		memcpy(to + 4 + (i * sizeof(lms_signature)), &from->signed_pub_key[i],
+				sizeof(lms_signature));
+	}
+	for (int i = 0; i < from->Nspk; i++) {
+		memcpy(
+				to + 4 + (from->Nspk * sizeof(lms_signature))
+						+ (i * sizeof(lms_public_key)), &from->pub_key[i],
+				sizeof(lms_public_key));
+	}
+	memcpy(
+			to + 4 + (from->Nspk * sizeof(lms_signature))
+					+ (from->Nspk * sizeof(lms_public_key)), &from->sig,
+			sizeof(lms_signature));
+}
+
+void deserialize_hss_signature(unsigned char *from, hss_signature *to) {
+
+	to->Nspk = get_bigendian(from, 4);
+	for (int i = 0; i < to->Nspk; i++) {
+		memcpy(&to->signed_pub_key[i], from + 4 + (i * sizeof(lms_signature)),
+				sizeof(lms_signature));
+	}
+	for (int i = 0; i < to->Nspk; i++) {
+		memcpy(&to->pub_key[i],
+				from + 4 + (to->Nspk * sizeof(lms_signature))
+						+ (i * sizeof(lms_public_key)), sizeof(lms_public_key));
+	}
+	memcpy(&to->sig,
+			from + 4 + (to->Nspk * sizeof(lms_signature))
+					+ (to->Nspk * sizeof(lms_public_key)),
+			sizeof(lms_signature));
+}
 
 int hss_sign(const unsigned char *message, const size_t input_size,
 		unsigned char *sk, unsigned char *signature) {
@@ -126,16 +161,37 @@ int hss_sign(const unsigned char *message, const size_t input_size,
 		memcpy(&hss_signature.pub_key[i], &private_key.pubs[i + 1],
 				sizeof(lms_public_key));
 	}
-	print_hss_signature(&hss_signature);
-	//put_bigendian(signature, private_key.L - 1, 4);
-	//for (int i = 1; i < private_key.L; i++) {
-
-	/*serialize_lms_signature(&private_key.sigs[1], signature + 4);
-	 serialize_lms_public_key(&private_key.pubs[1],
-	 signature + 4 + CRYPTO_BYTES_LMS);
-	 //	}
-	 serialize_lms_signature(&tmp_sig,
-	 signature + 4 + CRYPTO_BYTES_LMS + HSS_PUBLIC_KEY);*/
+	//print_hss_signature(&hss_signature);
+	serialize_hss_signature(&hss_signature, signature);
 
 	return 1;
+}
+
+int hss_verify(const unsigned char *message, const size_t input_size,
+		unsigned char *pk, unsigned char *signature) {
+
+	hss_public_key public_key;
+	hss_signature hss_signature;
+
+	deserialize_hss_public_key(pk, &public_key);
+	deserialize_hss_signature(signature, &hss_signature);
+
+	//print_hss_signature(&hss_signature);
+
+	if (hss_signature.Nspk + 1 != public_key.L)
+		return -2;
+
+	for (int i = 0; i < hss_signature.Nspk; i++) {
+		unsigned char pub_serial[LMS_PUB_KEY_SIZE] = { 0 };
+		serialize_lms_public_key(&hss_signature.pub_key[i], pub_serial);
+		if (!lms_verify_internal(pub_serial, LMS_PUB_KEY_SIZE, &public_key.pub,
+				&hss_signature.signed_pub_key[i])) {
+			return -1;
+		} else {
+			memcpy(&public_key.pub, &hss_signature.pub_key[i],
+					sizeof(lms_public_key));
+		}
+	}
+	return lms_verify_internal(message, input_size, &public_key.pub,
+			&hss_signature.sig);
 }

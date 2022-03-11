@@ -29,6 +29,8 @@ int main(void) {
 	hss_keygen(sk, pk);
 
 	hss_sign(message, 5, sk, signature);
+	int ret = hss_verify(message, 5, pk, signature);
+	printf("valid ? %d\n", ret);
 	//print_hex(signature, CRYPTO_BYTES_HSS);
 	/*printf("sk:\n");
 	 print_hex(sk, 60);

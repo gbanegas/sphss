@@ -149,8 +149,6 @@ void sign_and_compute_path(const unsigned char *message,
 
 }
 
-
-
 int lms_sign_internal(const unsigned char *message, const size_t input_size,
 		lms_private_key *sk, lms_signature *sig) {
 	unsigned int max_digit = 1 << H;
@@ -193,7 +191,8 @@ void recover_lmots_public_key(lms_public_key *pk, lms_signature *sig,
 	memcpy(tmp_S, pk->param_I, 16);
 	put_bigendian(tmp_S + 16, sig->q, 4);
 
-	unsigned char concat_message[86] = { 0 };
+	unsigned char concat_message[54 + input_size];
+	memset(concat_message, 0, 54 + input_size);
 	memcpy(concat_message, tmp_S, 20);
 	memcpy(concat_message + 20, &a, 2);
 	memcpy(concat_message + 22, sig->lmots_sig.C, 32);
@@ -266,6 +265,44 @@ int lms_verify(const unsigned char *message, const size_t input_size,
 	}
 
 	return memcmp(public_key.K, res, 32) == 0;
+
+}
+
+int lms_verify_internal(const unsigned char *message, const size_t input_size,
+		lms_public_key *public_key, lms_signature *sig) {
+
+	unsigned char lmots_pk[32] = { 0 };
+	//TODO: add the verifications
+	recover_lmots_public_key(public_key, sig, message, input_size, lmots_pk);
+	unsigned int node_pos = sig->q + (1 << H);
+	unsigned char tmp[87] = { 0 };
+	memcpy(tmp, public_key->param_I, 16);
+	put_bigendian(tmp + 16, node_pos, 4);
+	put_bigendian(tmp + 20, D_LEAF, 2);
+	memcpy(tmp + 22, lmots_pk, 32);
+	unsigned char res[32] = { 0 };
+	sha3_256(res, tmp, 54);
+	for (int i = 0; i < H; i++) {
+		if ((node_pos % 2) == 0) {
+			memcpy(tmp, public_key->param_I, 16);
+			put_bigendian(tmp + 16, (node_pos / 2), 4);
+			put_bigendian(tmp + 20, D_INTR, 2);
+			memcpy(tmp + 22, res, 32);
+			memcpy(tmp + 54, sig->path[i].node, 32);
+
+		} else {
+			memcpy(tmp, public_key->param_I, 16);
+			put_bigendian(tmp + 16, (node_pos / 2), 4);
+			put_bigendian(tmp + 20, D_INTR, 2);
+			memcpy(tmp + 22, sig->path[i].node, 32);
+			memcpy(tmp + 54, res, 32);
+
+		}
+		sha3_256(res, tmp, 86);
+		node_pos = node_pos / 2;
+	}
+
+	return memcmp(public_key->K, res, 32) == 0;
 
 }
 

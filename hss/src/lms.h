@@ -36,4 +36,7 @@ int lms_sign(const unsigned char *message, const size_t input_size,
 int lms_verify(const unsigned char *message, const size_t input_size,
 		unsigned char *pk, unsigned char *signature);
 
+int lms_verify_internal(const unsigned char *message, const size_t input_size,
+		lms_public_key *pk, lms_signature *signature);
+
 #endif /* LMS_H_ */
