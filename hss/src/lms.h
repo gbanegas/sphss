@@ -21,9 +21,9 @@
 #include "lms_ots.h"
 #include "internal.h"
 
-void gen_lms_private_key(lms_private_key *sk);
+void keygen_lms_private_key(lms_private_key *sk);
 
-void gen_lms_public_key(lms_private_key *sk, lms_public_key *pk);
+void keygen_lms_public_key(lms_private_key *sk, lms_public_key *pk);
 
 int lms_keygen(unsigned char *sk, unsigned char *pk);
 

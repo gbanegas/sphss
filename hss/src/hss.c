@@ -10,12 +10,12 @@
 void gen_hss_private_key(hss_private_key *sk) { //https://datatracker.ietf.org/doc/html/rfc8554#section-6.1
 	sk->remain = (1 << (LEVELS * H));
 	sk->L = LEVELS;
-	gen_lms_private_key(&sk->priv[0]);
-	gen_lms_public_key(&sk->priv[0], &sk->pubs[0]);
+	keygen_lms_private_key(&sk->priv[0]);
+	keygen_lms_public_key(&sk->priv[0], &sk->pubs[0]);
 	for (int i = 1; i < LEVELS; i++) {
-		gen_lms_private_key(&sk->priv[i]);
+		keygen_lms_private_key(&sk->priv[i]);
 		memcpy(sk->priv[i].SEED, sk->priv[0].SEED, 32);
-		gen_lms_public_key(&sk->priv[i], &sk->pubs[i]);
+		keygen_lms_public_key(&sk->priv[i], &sk->pubs[i]);
 		unsigned char pub_serial[LMS_PUB_KEY_SIZE] = { 0 };
 		serialize_lms_public_key(&sk->pubs[i], pub_serial);
 		lms_sign_internal(pub_serial, LMS_PUB_KEY_SIZE, &sk->priv[i - 1],

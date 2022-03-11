@@ -7,7 +7,7 @@
 
 #include "lms.h"
 
-void gen_lms_private_key(lms_private_key *sk) {
+void keygen_lms_private_key(lms_private_key *sk) {
 
 	randombytes(sk->param_I, 16);
 	sk->q = 0;
@@ -48,7 +48,7 @@ void compute_node_r(const unsigned char *param_I, unsigned char *k,
 
 }
 
-void gen_lms_public_key(lms_private_key *sk, lms_public_key *pk) {
+void keygen_lms_public_key(lms_private_key *sk, lms_public_key *pk) {
 	int max_digit = 1 << H;
 	unsigned char tmp_S[20] = { 0 };
 	memcpy(tmp_S, sk->param_I, 16);
@@ -71,8 +71,8 @@ void gen_lms_public_key(lms_private_key *sk, lms_public_key *pk) {
 int lms_keygen(unsigned char *sk, unsigned char *pk) {
 	lms_private_key private_key;
 	lms_public_key public_key;
-	gen_lms_private_key(&private_key);
-	gen_lms_public_key(&private_key, &public_key);
+	keygen_lms_private_key(&private_key);
+	keygen_lms_public_key(&private_key, &public_key);
 	serialize_lms_public_key(&public_key, pk);
 	serialize_lms_private_key(&private_key, sk);
 
@@ -237,37 +237,8 @@ int lms_verify(const unsigned char *message, const size_t input_size,
 	deserialize_lms_signature(signature, &sig);
 	deserialize_lms_public_key(pk, &public_key);
 	//TODO: add the verifications
-	recover_lmots_public_key(&public_key, &sig, message, input_size, lmots_pk);
-	unsigned int node_pos = sig.q + (1 << H);
-	unsigned char tmp[87] = { 0 };
-	memcpy(tmp, public_key.param_I, 16);
-	put_bigendian(tmp + 16, node_pos, 4);
-	put_bigendian(tmp + 20, D_LEAF, 2);
-	memcpy(tmp + 22, lmots_pk, 32);
-	unsigned char res[32] = { 0 };
-	sha3_256(res, tmp, 54);
-	for (int i = 0; i < H; i++) {
-		if ((node_pos % 2) == 0) {
-			memcpy(tmp, public_key.param_I, 16);
-			put_bigendian(tmp + 16, (node_pos / 2), 4);
-			put_bigendian(tmp + 20, D_INTR, 2);
-			memcpy(tmp + 22, res, 32);
-			memcpy(tmp + 54, sig.path[i].node, 32);
 
-		} else {
-			memcpy(tmp, public_key.param_I, 16);
-			put_bigendian(tmp + 16, (node_pos / 2), 4);
-			put_bigendian(tmp + 20, D_INTR, 2);
-			memcpy(tmp + 22, sig.path[i].node, 32);
-			memcpy(tmp + 54, res, 32);
-
-		}
-		sha3_256(res, tmp, 86);
-		node_pos = node_pos / 2;
-	}
-
-	return memcmp(public_key.K, res, 32) == 0;
-
+	return lms_verify_internal(message, input_size, &public_key, &sig);
 }
 
 int lms_verify_internal(const unsigned char *message, const size_t input_size,
