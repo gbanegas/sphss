@@ -14,7 +14,7 @@ void gen_hss_private_key(hss_private_key *sk) { //https://datatracker.ietf.org/d
 	keygen_lms_public_key(&sk->priv[0], &sk->pubs[0]);
 	for (int i = 1; i < LEVELS; i++) {
 		keygen_lms_private_key(&sk->priv[i]);
-		memcpy(sk->priv[i].SEED, sk->priv[0].SEED, 32);
+		//memcpy(sk->priv[i].SEED, sk->priv[0].SEED, 32);
 		keygen_lms_public_key(&sk->priv[i], &sk->pubs[i]);
 		unsigned char pub_serial[LMS_PUB_KEY_SIZE] = { 0 };
 		serialize_lms_public_key(&sk->pubs[i], pub_serial);
@@ -33,42 +33,48 @@ void gen_hss_public_key(hss_private_key *sk, hss_public_key *pk) {
 void deserialize_hss_private_key(unsigned char *sk,
 		hss_private_key *private_key) {
 
-	private_key->L = bytes_to_ull(sk, 4);
+	private_key->remain = bytes_to_ull(sk, 4);
+	private_key->L = bytes_to_ull(sk + 4, 4);
 	for (unsigned int i = 0; i < private_key->L; i++) {
-		private_key->priv[i].lmos_alg_type = bytes_to_ull(sk + 4 + (i * 64), 4);
-		private_key->priv[i].lms_type = bytes_to_ull(sk + 8 + (i * 64), 4);
-		memcpy(private_key->priv[i].param_I, sk + 12 + (i * 64), 16);
-		memcpy(private_key->priv[i].SEED, sk + 28 + (i * 64), 32);
-		private_key->priv[i].q = bytes_to_ull(sk + 60 + (i * 64), 4);
+		private_key->priv[i].lmos_alg_type = bytes_to_ull(sk + 8 + (i * 68), 4);
+		private_key->priv[i].lms_type = bytes_to_ull(sk + 12 + (i * 68), 4);
+		memcpy(private_key->priv[i].param_I, sk + 16 + (i * 68), 16);
+		memcpy(private_key->priv[i].SEED, sk + 32 + (i * 68), 32);
+		private_key->priv[i].q = bytes_to_ull(sk + 64 + (i * 68), 4);
 
 	}
-	for (unsigned int i = 1; i < private_key->L; i++) {
+	for (unsigned int i = 0; i < private_key->L; i++) {
 		deserialize_lms_public_key(
-				sk + 64 + (i * (LMS_PUB_KEY_SIZE + CRYPTO_BYTES_LMS)),
+				sk + (private_key->L * 68)
+						+ (i * (LMS_PUB_KEY_SIZE + CRYPTO_BYTES_LMS)),
 				&private_key->pubs[i]);
 		deserialize_lms_signature(
-				sk + 64 + LMS_PUB_KEY_SIZE
+				sk + (private_key->L * 68) + LMS_PUB_KEY_SIZE
 						+ (i * (LMS_PUB_KEY_SIZE + CRYPTO_BYTES_LMS)),
-				&private_key->sigs[i - 1]);
+				&private_key->sigs[i]);
 	}
 
 }
 
 void serialize_hss_private_key(hss_private_key *private_key, unsigned char *sk) {
-	ull_to_bytes(sk, private_key->L, 4);
+	ull_to_bytes(sk, private_key->remain, 4);
+	ull_to_bytes(sk + 4, private_key->L, 4);
 	for (unsigned int i = 0; i < private_key->L; i++) {
-		ull_to_bytes(sk + 4 + (i * 64), private_key->priv[i].lmos_alg_type, 4);
-		ull_to_bytes(sk + 8 + (i * 64), private_key->priv[i].lms_type, 4);
-		memcpy(sk + 12 + (i * 64), private_key->priv[i].param_I, 16);
-		memcpy(sk + 28 + (i * 64), private_key->priv[i].SEED, 32);
-		ull_to_bytes(sk + 60 + (i * 64), private_key->priv[i].q, 4);
+
+		ull_to_bytes(sk + 8 + (i * 68), private_key->priv[i].lmos_alg_type, 4);
+		ull_to_bytes(sk + 12 + (i * 68), private_key->priv[i].lms_type, 4);
+		memcpy(sk + 16 + (i * 68), private_key->priv[i].param_I, 16);
+		memcpy(sk + 32 + (i * 68), private_key->priv[i].SEED, 32);
+		ull_to_bytes(sk + 64 + (i * 68), private_key->priv[i].q, 4);
 
 	}
-	for (unsigned int i = 1; i < private_key->L; i++) {
+
+	for (unsigned int i = 0; i < private_key->L; i++) {
 		serialize_lms_public_key(&private_key->pubs[i],
-				sk + 64 + (i * (LMS_PUB_KEY_SIZE + CRYPTO_BYTES_LMS)));
-		serialize_lms_signature(&private_key->sigs[i - 1],
-				sk + 64 + LMS_PUB_KEY_SIZE
+				sk + (private_key->L * 68)
+						+ (i * (LMS_PUB_KEY_SIZE + CRYPTO_BYTES_LMS)));
+		serialize_lms_signature(&private_key->sigs[i],
+				sk + (private_key->L * 68) + LMS_PUB_KEY_SIZE
 						+ (i * (LMS_PUB_KEY_SIZE + CRYPTO_BYTES_LMS)));
 	}
 
@@ -97,9 +103,6 @@ int hss_keygen(unsigned char *sk, unsigned char *pk) {
 
 	gen_hss_private_key(&private_key);
 	gen_hss_public_key(&private_key, &public_key);
-
-	print_hss_private_key(&private_key);
-	print_hss_public_key(&public_key);
 
 	serialize_hss_public_key(&public_key, pk);
 	serialize_hss_private_key(&private_key, sk);
@@ -147,8 +150,8 @@ void deserialize_hss_signature(unsigned char *from, hss_signature *to) {
 int hss_sign(const unsigned char *message, const size_t input_size,
 		unsigned char *sk, unsigned char *signature) {
 	hss_private_key private_key;
-
 	deserialize_hss_private_key(sk, &private_key);
+
 	if (private_key.remain == 0)
 		return err_private_key_exhausted;
 	//TODO: check if it is exhausted
@@ -164,6 +167,7 @@ int hss_sign(const unsigned char *message, const size_t input_size,
 	}
 	serialize_hss_signature(&hss_signature, signature);
 	private_key.remain -= 1;
+
 	serialize_hss_private_key(&private_key, sk);
 
 	return 1;

@@ -129,14 +129,18 @@ void print_hss_private_key(hss_private_key *sk) {
 	for (int i = 0; i < 8; i++)
 		printf("-");
 	printf("\n");
+	printf("remain: %u\n", sk->remain);
 	printf("levels: %u\n", sk->L);
 
-	for (int i = 0; i < sk->L - 1; i++) {
+	for (int i = 0; i < sk->L; i++) {
 		printf("Level: %d\n", i);
 		print_lms_priv_key(&sk->priv[i]);
-		print_lms_pub_key(&sk->pubs[i + 1]);
-		print_lms_signature(&sk->sigs[i]);
+		print_lms_pub_key(&sk->pubs[i]);
+
 	}
+	/*for (int i = 0; i < sk->L-1; i++) {
+		print_lms_signature(&sk->sigs[i]);
+	}*/
 
 }
 

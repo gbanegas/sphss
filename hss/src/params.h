@@ -116,7 +116,7 @@ typedef enum lms_algorithm_type {
 #define MAX_HSS_LEVELS 8
 #define LEVELS 2
 
-#define HSS_PRIVATE_KEY 4+(LEVELS*(64))
+#define HSS_PRIVATE_KEY 4+(LEVELS*(LMS_PUB_KEY_SIZE*LMS_PRIV_KEY_SIZE*CRYPTO_BYTES_LMS))
 
 #define HSS_PUBLIC_KEY (4+4+4+16+32)
 

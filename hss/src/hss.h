@@ -31,4 +31,9 @@ int hss_sign(const unsigned char *message, const size_t input_size,
 int hss_verify(const unsigned char *message, const size_t input_size,
 		unsigned char *pk, unsigned char *signature);
 
+void deserialize_hss_private_key(unsigned char *sk,
+		hss_private_key *private_key);
+
+void serialize_hss_private_key(hss_private_key *private_key, unsigned char *sk);
+
 #endif /* HSS_H_ */
