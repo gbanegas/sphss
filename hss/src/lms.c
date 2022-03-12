@@ -14,7 +14,6 @@ void keygen_lms_private_key(lms_private_key *sk) {
 	sk->lmos_alg_type = LMOTS_ALG_TYPE;
 	sk->lms_type = LMS_ALG_TYPE;
 	randombytes(sk->SEED, 32);
-	//int max_digit = 1 << H;
 }
 
 void compute_node_r(const unsigned char *param_I, unsigned char *k,
@@ -237,7 +236,14 @@ int lms_verify_internal(const unsigned char *message, const size_t input_size,
 		lms_public_key *public_key, lms_signature *sig) {
 
 	unsigned char lmots_pk[32] = { 0 };
-	//TODO: add the verifications
+	int max_digit = 1 << H;
+	if (public_key->lms_type != sig->lms_type)
+		return err_algorithm_mismatch;
+
+	if (sig->q > max_digit)
+		return err_invalid_signature;
+
+	//TODO: add check path
 	recover_lmots_public_key(public_key, sig, message, input_size, lmots_pk);
 	unsigned int node_pos = sig->q + (1 << H);
 	unsigned char tmp[87] = { 0 };
