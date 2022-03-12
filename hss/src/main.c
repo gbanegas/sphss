@@ -73,8 +73,8 @@ void test_hss() {
 }
 int main(void) {
 
-	//test_lms_ots();
-	//test_lms();
+	test_lms_ots();
+	test_lms();
 	test_hss();
 
 	return EXIT_SUCCESS;
