@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "params.h"
+#include "sphss_defs.h"
 
 /**
  * Converts the value of 'in' to 'outlen' bytes in big-endian byte order.

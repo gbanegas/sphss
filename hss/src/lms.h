@@ -21,6 +21,7 @@
 #include "lms_ots.h"
 #include "internal.h"
 #include "errors.h"
+#include "sphss_defs.h"
 
 /**
  * Generation of the LMS private key

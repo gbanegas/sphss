@@ -18,6 +18,7 @@
 #include "params.h"
 #include "hash.h"
 #include "fips202.h"
+#include "sphss_defs.h"
 
 /**
  * Concatenation of S, tmp, i in big endian, and j.

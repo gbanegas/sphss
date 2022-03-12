@@ -35,8 +35,7 @@ void deserialize_hss_private_key(unsigned char *sk,
 
 	private_key->L = bytes_to_ull(sk, 4);
 	for (unsigned int i = 0; i < private_key->L; i++) {
-		private_key->priv[i].lmos_alg_type = bytes_to_ull(sk + 4 + (i * 64),
-				4);
+		private_key->priv[i].lmos_alg_type = bytes_to_ull(sk + 4 + (i * 64), 4);
 		private_key->priv[i].lms_type = bytes_to_ull(sk + 8 + (i * 64), 4);
 		memcpy(private_key->priv[i].param_I, sk + 12 + (i * 64), 16);
 		memcpy(private_key->priv[i].SEED, sk + 28 + (i * 64), 32);
@@ -148,9 +147,11 @@ void deserialize_hss_signature(unsigned char *from, hss_signature *to) {
 int hss_sign(const unsigned char *message, const size_t input_size,
 		unsigned char *sk, unsigned char *signature) {
 	hss_private_key private_key;
+
 	deserialize_hss_private_key(sk, &private_key);
-	print_hss_private_key(&private_key);
-	//TODO: check if it still valid
+	if (private_key.remain == 0)
+		return err_private_key_exhausted;
+	//TODO: check if it is exhausted
 	hss_signature hss_signature;
 	hss_signature.Nspk = private_key.L - 1;
 	lms_sign_internal(message, input_size, &private_key.priv[private_key.L - 1],
@@ -161,8 +162,9 @@ int hss_sign(const unsigned char *message, const size_t input_size,
 		memcpy(&hss_signature.pub_key[i], &private_key.pubs[i + 1],
 				sizeof(lms_public_key));
 	}
-	//print_hss_signature(&hss_signature);
 	serialize_hss_signature(&hss_signature, signature);
+	private_key.remain -= 1;
+	serialize_hss_private_key(&private_key, sk);
 
 	return 1;
 }
@@ -176,17 +178,15 @@ int hss_verify(const unsigned char *message, const size_t input_size,
 	deserialize_hss_public_key(pk, &public_key);
 	deserialize_hss_signature(signature, &hss_signature);
 
-	//print_hss_signature(&hss_signature);
-
 	if (hss_signature.Nspk + 1 != public_key.L)
-		return -2;
+		return err_wrong_levels;
 
 	for (int i = 0; i < hss_signature.Nspk; i++) {
 		unsigned char pub_serial[LMS_PUB_KEY_SIZE] = { 0 };
 		serialize_lms_public_key(&hss_signature.pub_key[i], pub_serial);
 		if (!lms_verify_internal(pub_serial, LMS_PUB_KEY_SIZE, &public_key.pub,
 				&hss_signature.signed_pub_key[i])) {
-			return -1;
+			return err_invalid_signature;
 		} else {
 			memcpy(&public_key.pub, &hss_signature.pub_key[i],
 					sizeof(lms_public_key));

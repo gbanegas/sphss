@@ -19,6 +19,7 @@
 #include "fips202.h"
 #include "lms_utils.h"
 #include "errors.h"
+#include "sphss_defs.h"
 
 /**
  * Key generation of LMS-OTS signature
