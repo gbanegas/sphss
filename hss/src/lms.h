@@ -20,6 +20,7 @@
 #include "fips202.h"
 #include "lms_ots.h"
 #include "internal.h"
+#include "errors.h"
 
 /**
  * Generation of the LMS private key

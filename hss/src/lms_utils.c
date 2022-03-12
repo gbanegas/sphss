@@ -49,7 +49,6 @@ void deserialize_lms_private_key(unsigned char *from, lms_private_key *to) {
 
 void serialize_lms_private_key(lms_private_key *from, unsigned char *to) {
 	ull_to_bytes(to, from->lmos_alg_type, 4);
-	//memcpy(to, &from->lmos_alg_type, 4);
 	ull_to_bytes(to + 4, from->lms_type, 4);
 	memcpy(to + 8, from->param_I, 16);
 	memcpy(to + 24, from->SEED, 32);
@@ -84,7 +83,6 @@ void serialize_lms_signature(lms_signature *from, unsigned char *to) {
 	}
 
 }
-
 
 void deserialize_lms_signature(unsigned char *from, lms_signature *to) {
 	to->q = bytes_to_ull(from, 4);
