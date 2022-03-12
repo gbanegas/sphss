@@ -152,7 +152,7 @@ void sign_and_compute_path(const unsigned char *message,
 int lms_sign_internal(const unsigned char *message, const size_t input_size,
 		lms_private_key *sk, lms_signature *sig) {
 	unsigned int max_digit = 1 << H;
-	if (sk->q > max_digit) {
+	if (sk->q >= max_digit) {
 		return err_private_key_exhausted;
 	}
 	sign_and_compute_path(message, input_size, sk, sig);

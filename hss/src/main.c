@@ -8,6 +8,7 @@
 #include "hss.h"
 
 #define MESSAGE_SIZE 5
+#define ITER 100
 
 void test_lms_ots() {
 	unsigned char sk[LMSOTS_PRIV_KEY_SIZE];
@@ -19,15 +20,17 @@ void test_lms_ots() {
 	unsigned char signature[CRYPTO_BYTES_LMOS] = { 0 };
 	memset(signature, 0, CRYPTO_BYTES_LMOS);
 
-	lms_ots_keygen(sk, pk);
+	for (int i = 0; i < ITER; i++) {
+		lms_ots_keygen(sk, pk);
 
-	int ret_sign = lms_ots_sign(message, MESSAGE_SIZE, sk, signature);
+		int ret_sign = lms_ots_sign(message, MESSAGE_SIZE, sk, signature);
 
-	printf("LMS_OTS ret_sign ? %d\n", ret_sign);
+		printf("LMS_OTS ret_sign ? %d\n", ret_sign);
 
-	int ret = lms_ots_verify(message, MESSAGE_SIZE, pk, signature);
+		int ret = lms_ots_verify(message, MESSAGE_SIZE, pk, signature);
 
-	printf("LMS_OTS valid ? %d\n", ret);
+		printf("LMS_OTS valid ? %d\n", ret);
+	}
 }
 
 void test_lms() {
@@ -41,14 +44,15 @@ void test_lms() {
 	memset(signature, 0, CRYPTO_BYTES_LMS);
 
 	lms_keygen(sk, pk);
+	for (int i = 0; i < ITER; i++) {
+		int ret_sign = lms_sign(message, MESSAGE_SIZE, sk, signature);
 
-	int ret_sign = lms_sign(message, MESSAGE_SIZE, sk, signature);
+		printf("LMS ret_sign ? %d\n", ret_sign);
 
-	printf("LMS ret_sign ? %d\n", ret_sign);
+		int ret = lms_verify(message, MESSAGE_SIZE, pk, signature);
 
-	int ret = lms_verify(message, MESSAGE_SIZE, pk, signature);
-
-	printf("LMS valid ? %d\n", ret);
+		printf("LMS valid ? %d\n", ret);
+	}
 }
 
 void test_hss() {
@@ -63,17 +67,19 @@ void test_hss() {
 
 	hss_keygen(sk, pk);
 
-	int ret_sign = hss_sign(message, MESSAGE_SIZE, sk, signature);
+	for (int i = 0; i < ITER; i++) {
+		int ret_sign = hss_sign(message, MESSAGE_SIZE, sk, signature);
 
-	printf("HSS ret_sign ? %d\n", ret_sign);
+		printf("HSS ret_sign ? %d\n", ret_sign);
 
-	int ret = hss_verify(message, MESSAGE_SIZE, pk, signature);
+		int ret = hss_verify(message, MESSAGE_SIZE, pk, signature);
 
-	printf("HSS valid ? %d\n", ret);
+		printf("HSS valid ? %d\n", ret);
+	}
 }
 int main(void) {
 
-	test_lms_ots();
+	//test_lms_ots();
 	test_lms();
 	test_hss();
 
