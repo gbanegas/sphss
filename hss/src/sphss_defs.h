@@ -64,7 +64,7 @@ typedef struct lms_private_key {
 /* hierarchical signature system (hss) */
 typedef struct hss_private_key {
 	unsigned int L;
-	unsigned int remain;
+	int remain;
 	lms_private_key priv[LEVELS];
 	lms_public_key pubs[LEVELS];
 	lms_signature sigs[LEVELS];

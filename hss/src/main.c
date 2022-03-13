@@ -8,7 +8,7 @@
 #include "hss.h"
 
 #define MESSAGE_SIZE 5
-#define ITER 100
+#define ITER 1025
 
 void test_lms_ots() {
 	unsigned char sk[LMSOTS_PRIV_KEY_SIZE];
@@ -68,6 +68,7 @@ void test_hss() {
 	hss_keygen(sk, pk);
 
 	for (int i = 0; i < ITER; i++) {
+		printf("Iter: %d\n", i);
 		int ret_sign = hss_sign(message, MESSAGE_SIZE, sk, signature);
 
 		printf("HSS ret_sign ? %d\n", ret_sign);
@@ -80,7 +81,7 @@ void test_hss() {
 int main(void) {
 
 	//test_lms_ots();
-	test_lms();
+	//test_lms();
 	test_hss();
 
 	return EXIT_SUCCESS;
