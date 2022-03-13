@@ -11,6 +11,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
+/**
+ * Representation of Node
+ */
 typedef struct Node {
 	unsigned char data[32];
 } Node;
