@@ -149,9 +149,7 @@ void deserialize_hss_signature(unsigned char *from, hss_signature *to) {
 void refresh_keys(hss_private_key *sk, int *to_refresh, int nr_to_refresh) {
 
 	unsigned char pub_serial[LMS_PUB_KEY_SIZE] = { 0 };
-	printf("remaining: %d\n", sk->priv[to_refresh[0] - 1].q);
 	for (int i = 0; i < nr_to_refresh; i++) {
-		printf("refreshing: %d\n", to_refresh[i]);
 		keygen_lms_private_key(&sk->priv[to_refresh[i]]);
 		keygen_lms_public_key(&sk->priv[to_refresh[i]],
 				&sk->pubs[to_refresh[i]]);

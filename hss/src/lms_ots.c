@@ -21,11 +21,11 @@ void gen_lmots_public_key(lmots_private_key *sk, lmots_public_key *pk) {
 	pk->alg_type = sk->alg_type;
 	uint16_t D_public = 0x8080;
 	uint_fast8_t tmp[32] = { 0 };
-	sha3_256incctx ctx;
-	sha3_256_inc_init(&ctx);
+	sha2_256_ctx ctx;
+	sha2_256_init(&ctx, pk->K);
 	memcpy(tmp, sk->S, 20);
 	memcpy(tmp + 20, &D_public, 2);
-	sha3_256_inc_absorb(&ctx, tmp, 22);
+	sha2_256_update(&ctx, tmp, 22);
 
 	uint_fast8_t tmp_concatenated[55] = { 0 };
 	memset(tmp, 0, 32);
@@ -33,15 +33,15 @@ void gen_lmots_public_key(lmots_private_key *sk, lmots_public_key *pk) {
 	for (int i = 0; i < P; i++) {
 		concat_hash_value(sk->S, sk->SEED, i + 1, D_PRG, tmp_concatenated);
 		//print_hex(tmp_concatenated, 55);
-		sha3_256(tmp, tmp_concatenated, 55);
+		sha2_256(tmp, tmp_concatenated, 55);
 		for (int j = 0; j < (1 << W) - 1; j++) {
 			concat_hash_value(sk->S, tmp, i, j, tmp_concatenated);
-			sha3_256(tmp, tmp_concatenated, 55);
+			sha2_256(tmp, tmp_concatenated, 55);
 		}
-		sha3_256_inc_absorb(&ctx, tmp, 32);
+		sha2_256_update(&ctx, tmp, 32);
 	}
 	memcpy(pk->S, sk->S, 20);
-	sha3_256_inc_finalize(pk->K, &ctx);
+	sha2_256_finish(&ctx);
 	//sha3_256_inc_ctx_release(&ctx);
 
 }
@@ -126,7 +126,8 @@ int lms_ots_sign_internal(const unsigned char *message, const size_t input_size,
 	memcpy(concat_message + 22, C, 32);
 	memcpy(concat_message + 54, message, input_size);
 	unsigned char hash[34] = { 0 };
-	sha3_256(hash, concat_message, 54 + input_size);
+	sha2_256(hash, concat_message, 54 + input_size);
+	//sha3_256(hash, concat_message, 54 + input_size);
 	uint16_t checksum_result = 0;
 	checksum_result = lms_ots_compute_checksum(hash);
 	uint8_t buff_check[2] = { 0 };
@@ -138,15 +139,16 @@ int lms_ots_sign_internal(const unsigned char *message, const size_t input_size,
 		unsigned char tmp[32] = { 0 };
 		concat_hash_value(private_key->S, private_key->SEED, i + 1, D_PRG,
 				concatenated);
-		sha3_256(tmp, concatenated, 55);
+		sha2_256(tmp, concatenated, 55);
+		//sha3_256(tmp, concatenated, 55);
 		for (uint16_t j = 0; j < lms_ots_coeff(hash, i, W); j++) {
 			concat_hash_value(private_key->S, tmp, i, j, concatenated);
-			sha3_256(tmp, concatenated, 55);
+			sha2_256(tmp, concatenated, 55);
+			//sha3_256(tmp, concatenated, 55);
 		}
 		memcpy(sig->y + (32 * i), tmp, 32);
 	}
 
-//TODO: update key
 	private_key->remain_sign -= 1;
 	return 1;
 }
@@ -175,17 +177,19 @@ int lms_ots_verify(unsigned char *message, size_t input_size, unsigned char *pk,
 	memcpy(concat_message + 54, message, input_size);
 
 	unsigned char hash[34] = { 0 };
-	sha3_256(hash, concat_message, 54 + input_size);
+	unsigned char res[32] = { 0 };
+	sha2_256(hash, concat_message, 54 + input_size);
+	//sha3_256(hash, concat_message, 54 + input_size);
 	uint16_t checksum_result = 0;
 	checksum_result = lms_ots_compute_checksum(hash);
 	uint8_t buff_check[2] = { 0 };
 	ull_to_bytes(buff_check, checksum_result, 2);
 	memcpy(hash + 32, buff_check, 2);
 
-	sha3_256incctx ctx;
+	sha2_256_ctx ctx;
 	uint16_t D_public = 0x8080;
 	uint_fast8_t tmp_concat[22] = { 0 };
-	sha3_256_inc_init(&ctx);
+	sha2_256_init(&ctx, res);
 
 	memcpy(tmp_concat, publick_key.S, 20);
 	memcpy(tmp_concat + 20, &D_public, 2);
@@ -197,12 +201,12 @@ int lms_ots_verify(unsigned char *message, size_t input_size, unsigned char *pk,
 		memcpy(tmp, sig.y + (i * 32), 32);
 		for (uint16_t j = lms_ots_coeff(hash, i, W); j < max_digit; j++) {
 			concat_hash_value(publick_key.S, tmp, i, j, concatenated);
-			sha3_256(tmp, concatenated, 55);
+			sha2_256(tmp, concatenated, 55);
 		}
 		hash_update(tmp, 32, &ctx);
 	}
-	unsigned char res[32] = { 0 };
-	sha3_256_inc_finalize(res, &ctx);
+	sha2_256_finish(&ctx);
+	//sha3_256_inc_finalize(res, &ctx);
 	return memcmp(publick_key.K, res, 32) == 0;
 }
 

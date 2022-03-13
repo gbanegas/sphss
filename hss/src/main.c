@@ -8,9 +8,10 @@
 #include "hss.h"
 
 #define MESSAGE_SIZE 5
-#define ITER 1025
+#define ITER 31
+#define ITER_HSS 1025
 
-void test_lms_ots() {
+int test_lms_ots() {
 	unsigned char sk[LMSOTS_PRIV_KEY_SIZE];
 	memset(sk, 0, LMSOTS_PRIV_KEY_SIZE);
 	unsigned char pk[LMSOTS_PUB_KEY_SIZE];
@@ -28,12 +29,19 @@ void test_lms_ots() {
 		printf("LMS_OTS ret_sign ? %d\n", ret_sign);
 
 		int ret = lms_ots_verify(message, MESSAGE_SIZE, pk, signature);
+		if (ret) {
+			printf("LMS_OTS valid!  \n");
+		} else {
+			printf("ret: %d\n", ret);
+			printf("LMS_OTS invalid!  \n");
+			return -1;
+		}
 
-		printf("LMS_OTS valid ? %d\n", ret);
 	}
+	return 1;
 }
 
-void test_lms() {
+int test_lms() {
 	unsigned char sk[LMS_PRIV_KEY_SIZE];
 	memset(sk, 0, LMS_PRIV_KEY_SIZE);
 	unsigned char pk[LMS_PUB_KEY_SIZE];
@@ -51,11 +59,17 @@ void test_lms() {
 
 		int ret = lms_verify(message, MESSAGE_SIZE, pk, signature);
 
-		printf("LMS valid ? %d\n", ret);
+		if (ret) {
+			printf("LMS valid!  \n");
+		} else {
+			printf("LMS invalid!  \n");
+			return -1;
+		}
 	}
+	return 1;
 }
 
-void test_hss() {
+int test_hss() {
 	unsigned char sk[HSS_PRIVATE_KEY];
 	memset(sk, 0, HSS_PRIVATE_KEY);
 	unsigned char pk[HSS_PUBLIC_KEY];
@@ -67,7 +81,7 @@ void test_hss() {
 
 	hss_keygen(sk, pk);
 
-	for (int i = 0; i < ITER; i++) {
+	for (int i = 0; i < ITER_HSS; i++) {
 		printf("Iter: %d\n", i);
 		int ret_sign = hss_sign(message, MESSAGE_SIZE, sk, signature);
 
@@ -75,14 +89,26 @@ void test_hss() {
 
 		int ret = hss_verify(message, MESSAGE_SIZE, pk, signature);
 
-		printf("HSS valid ? %d\n", ret);
+		if (ret) {
+			printf("HSS valid!  \n");
+		} else {
+			printf("HSS invalid!  \n");
+			return -1;
+		}
 	}
+	return 1;
 }
 int main(void) {
 
-	//test_lms_ots();
-	//test_lms();
-	test_hss();
+	int ret = test_lms_ots();
+	if (ret != 1)
+		exit(-1);
+	ret = test_lms();
+	if (ret != 1)
+		exit(-1);
+	ret = test_hss();
+	if (ret != 1)
+		exit(-1);
 
 	return EXIT_SUCCESS;
 }

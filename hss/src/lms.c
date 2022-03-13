@@ -27,7 +27,8 @@ void compute_node_r(const unsigned char *param_I, unsigned char *k,
 		ull_to_bytes(tmp + 16, r, 4);
 		memcpy(tmp + 20, &value, 2);
 		memcpy(tmp + 22, pub_keys[r - max_digit].K, 32);
-		sha3_256(k, tmp, 54);
+		sha2_256(k, tmp, 54);
+		//sha3_256(k, tmp, 54);
 
 	} else {
 		uint8_t tmp_1[32] = { 0 };
@@ -41,7 +42,8 @@ void compute_node_r(const unsigned char *param_I, unsigned char *k,
 		memcpy(tmp + 20, &value, 2);
 		memcpy(tmp + 22, tmp_1, 32);
 		memcpy(tmp + 54, tmp_2, 32);
-		sha3_256(k, tmp, 86);
+		sha2_256(k, tmp, 86);
+		//sha3_256(k, tmp, 86);
 
 	}
 
@@ -89,7 +91,8 @@ void compute_tree(const unsigned char *param_I, unsigned char *k,
 		ull_to_bytes(tmp + 16, r, 4);
 		memcpy(tmp + 20, &value, 2);
 		memcpy(tmp + 22, pub_keys[r - max_digit].K, 32);
-		sha3_256(k, tmp, 54);
+		sha2_256(k, tmp, 54);
+		//sha3_256(k, tmp, 54);
 		memcpy(nodes[r].data, k, 32);
 
 	} else {
@@ -104,7 +107,8 @@ void compute_tree(const unsigned char *param_I, unsigned char *k,
 		memcpy(tmp + 20, &value, 2);
 		memcpy(tmp + 22, tmp_1, 32);
 		memcpy(tmp + 54, tmp_2, 32);
-		sha3_256(k, tmp, 86);
+		sha2_256(k, tmp, 86);
+		//sha3_256(k, tmp, 86);
 		memcpy(nodes[r].data, k, 32);
 
 	}
@@ -198,15 +202,15 @@ void recover_lmots_public_key(lms_public_key *pk, lms_signature *sig,
 	memcpy(concat_message + 54, message, input_size);
 
 	unsigned char hash[34] = { 0 };
-	sha3_256(hash, concat_message, 54 + input_size);
+	sha2_256(hash, concat_message, 54 + input_size);
 	uint16_t checksum_result = 0;
 	checksum_result = lms_ots_compute_checksum(hash);
 	ull_to_bytes(hash + 32, checksum_result, 2);
 
-	sha3_256incctx ctx;
+	sha2_256_ctx ctx;
 	uint16_t D_public = 0x8080;
 	uint_fast8_t tmp_concat[22] = { 0 };
-	sha3_256_inc_init(&ctx);
+	sha2_256_init(&ctx, pk_tc);
 
 	memcpy(tmp_concat, tmp_S, 20);
 	memcpy(tmp_concat + 20, &D_public, 2);
@@ -218,11 +222,13 @@ void recover_lmots_public_key(lms_public_key *pk, lms_signature *sig,
 		memcpy(tmp, sig->lmots_sig.y + (i * 32), 32);
 		for (uint16_t j = lms_ots_coeff(hash, i, W); j < max_digit; j++) {
 			concat_hash_value(tmp_S, tmp, i, j, concatenated);
-			sha3_256(tmp, concatenated, 55);
+			sha2_256(tmp, concatenated, 55);
+			//sha3_256(tmp, concatenated, 55);
 		}
 		hash_update(tmp, 32, &ctx);
 	}
-	sha3_256_inc_finalize(pk_tc, &ctx);
+	(void) sha2_256_finish(&ctx);
+	//sha3_256_inc_finalize(pk_tc, &ctx);
 
 }
 
@@ -257,7 +263,8 @@ int lms_verify_internal(const unsigned char *message, const size_t input_size,
 	ull_to_bytes(tmp + 20, D_LEAF, 2);
 	memcpy(tmp + 22, lmots_pk, 32);
 	unsigned char res[32] = { 0 };
-	sha3_256(res, tmp, 54);
+	sha2_256(res, tmp, 54);
+	//sha3_256(res, tmp, 54);
 	for (int i = 0; i < H; i++) {
 		if ((node_pos % 2) == 0) {
 			memcpy(tmp, public_key->param_I, 16);
@@ -274,7 +281,8 @@ int lms_verify_internal(const unsigned char *message, const size_t input_size,
 			memcpy(tmp + 54, res, 32);
 
 		}
-		sha3_256(res, tmp, 86);
+		sha2_256(res, tmp, 86);
+		//sha3_256(res, tmp, 86);
 		node_pos = node_pos / 2;
 	}
 

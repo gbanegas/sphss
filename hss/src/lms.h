@@ -17,7 +17,7 @@
 #include "randombytes.h"
 #include "params.h"
 #include "hash.h"
-#include "fips202.h"
+#include "fips180.h"
 #include "lms_ots.h"
 #include "internal.h"
 #include "errors.h"
