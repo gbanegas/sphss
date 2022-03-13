@@ -163,6 +163,11 @@ int lms_sign_internal(const unsigned char *message, const size_t input_size,
 
 	return 1;
 }
+int is_exhausted(lms_private_key *key) {
+	unsigned int max_digit = 1 << H;
+	return (max_digit - key->q) == 0;
+
+}
 
 int lms_sign(const unsigned char *message, const size_t input_size,
 		unsigned char *sk, unsigned char *signature) {

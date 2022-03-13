@@ -146,6 +146,19 @@ void deserialize_hss_signature(unsigned char *from, hss_signature *to) {
 					+ (to->Nspk * sizeof(lms_public_key)),
 			sizeof(lms_signature));
 }
+void refresh_keys(hss_private_key *sk, int *to_refresh, int nr_to_refresh) {
+
+	for (int i = 0; i < nr_to_refresh; i++) {
+		keygen_lms_private_key(&sk->priv[to_refresh[i]]);
+		keygen_lms_public_key(&sk->priv[to_refresh[i]],
+				&sk->pubs[to_refresh[i]]);
+		unsigned char pub_serial[LMS_PUB_KEY_SIZE] = { 0 };
+		serialize_lms_public_key(&sk->pubs[to_refresh[i]], pub_serial);
+		lms_sign_internal(pub_serial, LMS_PUB_KEY_SIZE,
+				&sk->priv[to_refresh[i] - 1], &sk->sigs[to_refresh[i] - 1]);
+
+	}
+}
 
 int hss_sign(const unsigned char *message, const size_t input_size,
 		unsigned char *sk, unsigned char *signature) {
@@ -155,6 +168,19 @@ int hss_sign(const unsigned char *message, const size_t input_size,
 	if (private_key.remain == 0)
 		return err_private_key_exhausted;
 	//TODO: check if it is exhausted
+
+	int to_refresh[LEVELS] = { 0 };
+	int is_to_refresh = 0;
+	for (unsigned int i = 0; i < private_key.L; i++) {
+		if (is_exhausted(&private_key.priv[i])) {
+			to_refresh[is_to_refresh] = i;
+			is_to_refresh++;
+		}
+	}
+	if (is_to_refresh != 0) {
+		refresh_keys(&private_key, to_refresh, is_to_refresh);
+	}
+
 	hss_signature hss_signature;
 	hss_signature.Nspk = private_key.L - 1;
 	lms_sign_internal(message, input_size, &private_key.priv[private_key.L - 1],

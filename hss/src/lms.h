@@ -65,4 +65,12 @@ int lms_verify(const unsigned char *message, const size_t input_size,
 int lms_verify_internal(const unsigned char *message, const size_t input_size,
 		lms_public_key *pk, lms_signature *signature);
 
+/**
+ * Check if the key is exhausted.
+ * it checks if ((1 << H) - q) == 0
+ * if 1 the key is exhausted
+ * if 0 the key still alive
+ */
+int is_exhausted(lms_private_key *key);
+
 #endif /* LMS_H_ */
