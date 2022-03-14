@@ -43,7 +43,7 @@ foo@bar: ./sphss
 ## Tests
 
 ## Benchmark
-Using cpucycle from [Supercop](https://bench.cr.yp.to/supercop.html), we reach the following values (in an Intel(R) Core(TM) i7-10610U CPU @ 1.80GHz):
+Using cpucycle from [Supercop](https://bench.cr.yp.to/supercop.html), we reach the following values for COMPILE_FLAGS = -DLMOTS_SHA256_N32_W8 -DLMS_SHA256_M32_H5 (in an Intel(R) Core(TM) i7-10610U CPU @ 1.80GHz):
 
 ```
 median lms-ots keygen: 7893243 cycles 
