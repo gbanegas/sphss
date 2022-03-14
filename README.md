@@ -8,6 +8,37 @@ It is based entire in the [RFC 8554](https://datatracker.ietf.org/doc/html/rfc85
 
 
 ## How to run
+-Select the best flavour in the Makefile, for example:
+```Makefile
+COMPILE_FLAGS = -DLMOTS_SHA256_N32_W8 -DLMS_SHA256_M32_H5
+```
+The other options for LMOTS are:
+```
+-DLMOTS_SHA256_N32_W1 
+
+-DLMOTS_SHA256_N32_W2
+
+-DLMOTS_SHA256_N32_W4 
+
+-DLMOTS_SHA256_N32_W8 
+```
+The other options for LMS are:
+```
+-DLMS_SHA256_M32_H5
+
+-DLMS_SHA256_M32_H10
+
+-DLMS_SHA256_M32_H15
+
+-DLMS_SHA256_M32_H20
+
+-DLMS_SHA256_M32_H25
+```
+Then it is just call make:
+```Console
+foo@bar: make
+foo@bar: ./sphss
+```
 
 ## Tests
 
