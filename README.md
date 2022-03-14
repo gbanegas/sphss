@@ -43,7 +43,7 @@ foo@bar: ./sphss
 ## Tests
 
 ## Benchmark
-Using cpuclycle from (https://bench.cr.yp.to/supercop.html)[Supercop], we reach the following values (in an Intel(R) Core(TM) i7-10610U CPU @ 1.80GHz):
+Using cpuclycle from [Supercop](https://bench.cr.yp.to/supercop.html), we reach the following values (in an Intel(R) Core(TM) i7-10610U CPU @ 1.80GHz):
 
 ```
 median lms-ots keygen: 7893243 cycles 
