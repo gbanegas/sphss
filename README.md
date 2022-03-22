@@ -6,6 +6,8 @@ Simple and portable implementation of LMS/HSS signatures. The code tries to make
 The code is a KISS (Keep it simple stupid) of LMS/HSS signatures.
 It is based entire in the [RFC 8554](https://datatracker.ietf.org/doc/html/rfc8554).
 
+**FAST VERSION:** https://github.com/gbanegas/sphss/tree/fast
+
 
 ## How to run
 -Select the best flavour in the Makefile, for example:
