@@ -1,96 +1,108 @@
-#ifndef SHA_256_H
-#define SHA_256_H
-
-#include <stdint.h>
-#include <string.h>
-
 /*
- * @brief Size of the SHA-256 sum. This times eight is 256 bits.
+ * FIPS 180-2 SHA-224/256/384/512 implementation
+ * Last update: 02/02/2007
+ * Issue date:  04/30/2005
+ *
+ * Copyright (C) 2005, 2007 Olivier Gay <olivier.gay@a3.epfl.ch>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the project nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE PROJECT AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE PROJECT OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
-#define SIZE_OF_SHA_256_HASH 32
 
-/*
- * @brief Size of the chunks used for the calculations.
- *
- * @note This should mostly be ignored by the user, although when using the streaming API, it has an impact for
- * performance. Add chunks whose size is a multiple of this, and you will avoid a lot of superfluous copying in RAM!
- */
-#define SIZE_OF_SHA_256_CHUNK 64
+#ifndef SHA2_H
+#define SHA2_H
 
-/*
- * @brief The opaque SHA-256 type, that should be instantiated when using the streaming API.
- *
- * @note Although the details are exposed here, in order to make instantiation easy, you should refrain from directly
- * accessing the fields, as they may change in the future.
- */
-typedef struct SHA256_CTX {
-	uint8_t *hash;
-	uint8_t chunk[SIZE_OF_SHA_256_CHUNK];
-	uint8_t *chunk_pos;
-	size_t space_left;
-	size_t total_len;
-	uint32_t h[8];
-} sha2_256_ctx;
+#define SHA224_DIGEST_SIZE ( 224 / 8)
+#define SHA256_DIGEST_SIZE ( 256 / 8)
+#define SHA384_DIGEST_SIZE ( 384 / 8)
+#define SHA512_DIGEST_SIZE ( 512 / 8)
 
-/*
- * @brief The simple SHA-256 calculation function.
- * @param hash Hash array, where the result is delivered.
- * @param input Pointer to the data the hash shall be calculated on.
- * @param len Length of the input data, in byte.
- *
- * @note If all of the data you are calculating the hash value on is available in a contiguous buffer in memory, this is
- * the function you should use.
- *
- * @note If either of the passed pointers is NULL, the results are unpredictable.
- */
-void sha2_256(uint8_t hash[SIZE_OF_SHA_256_HASH], const void *input, size_t len);
+#define SHA256_BLOCK_SIZE  ( 512 / 8)
+#define SHA512_BLOCK_SIZE  (1024 / 8)
+#define SHA384_BLOCK_SIZE  SHA512_BLOCK_SIZE
+#define SHA224_BLOCK_SIZE  SHA256_BLOCK_SIZE
 
-/*
- * @brief Initialize a SHA-256 streaming calculation.
- * @param sha_256 A pointer to a SHA-256 structure.
- * @param hash Hash array, where the result will be delivered.
- *
- * @note If all of the data you are calculating the hash value on is not available in a contiguous buffer in memory, this is
- * where you should start. Instantiate a SHA-256 structure, for instance by simply declaring it locally, make your hash
- * buffer available, and invoke this function. Once a SHA-256 hash has been calculated (see further below) a SHA-256
- * structure can be initialized again for the next calculation.
- *
- * @note If either of the passed pointers is NULL, the results are unpredictable.
- */
-void sha2_256_init(struct SHA256_CTX *sha_256,
-		uint8_t hash[SIZE_OF_SHA_256_HASH]);
-
-/*
- * @brief Stream more input data for an on-going SHA-256 calculation.
- * @param sha_256 A pointer to a previously initialized SHA-256 structure.
- * @param data Pointer to the data to be added to the calculation.
- * @param len Length of the data to add, in byte.
- *
- * @note This function may be invoked an arbitrary number of times between initialization and closing, but the maximum
- * data length is limited by the SHA-256 algorithm: the total number of bits (i.e. the total number of bytes times
- * eight) must be representable by a 64-bit unsigned integer. While that is not a practical limitation, the results are
- * unpredictable if that limit is exceeded.
- *
- * @note This function may be invoked on empty data (zero length), although that obviously will not add any data.
- *
- * @note If either of the passed pointers is NULL, the results are unpredictable.
- */
-void sha2_256_update(struct SHA256_CTX *sha_256, const void *data, size_t len);
-
-/*
- * @brief Conclude a SHA-256 streaming calculation, making the hash value available.
- * @param sha_256 A pointer to a previously initialized SHA-256 structure.
- * @return Pointer to the hash array, where the result is delivered.
- *
- * @note After this function has been invoked, the result is available in the hash buffer that initially was provided. A
- * pointer to the hash value is returned for convenience, but you should feel free to ignore it: it is simply a pointer
- * to the first byte of your initially provided hash array.
- *
- * @note If the passed pointer is NULL, the results are unpredictable.
- *
- * @note Invoking this function for a calculation with no data (the writing function has never been invoked, or it only
- * has been invoked with empty data) is legal. It will calculate the SHA-256 value of the empty string.
- */
-uint8_t* sha2_256_finish(struct SHA256_CTX *sha_256);
-
+#ifndef SHA2_TYPES
+#define SHA2_TYPES
+typedef unsigned char uint8;
+typedef unsigned int uint32;
+typedef unsigned long long uint64;
 #endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef struct {
+	unsigned int tot_len;
+	unsigned int len;
+	unsigned char block[2 * SHA256_BLOCK_SIZE];
+	uint32 h[8];
+} sha256_ctx;
+
+typedef struct {
+	unsigned int tot_len;
+	unsigned int len;
+	unsigned char block[2 * SHA512_BLOCK_SIZE];
+	uint64 h[8];
+} sha512_ctx;
+
+typedef sha512_ctx sha384_ctx;
+typedef sha256_ctx sha224_ctx;
+
+void sha224_init(sha224_ctx *ctx);
+void sha224_update(sha224_ctx *ctx, const unsigned char *message,
+		unsigned int len);
+void sha224_final(sha224_ctx *ctx, unsigned char *digest);
+void sha224(const unsigned char *message, unsigned int len,
+		unsigned char *digest);
+
+void sha256_init(sha256_ctx *ctx);
+void sha256_update(sha256_ctx *ctx, const unsigned char *message,
+		unsigned int len);
+void sha256_final(sha256_ctx *ctx, unsigned char *digest);
+void sha256(const unsigned char *message, unsigned int len,
+		unsigned char *digest);
+
+void sha384_init(sha384_ctx *ctx);
+void sha384_update(sha384_ctx *ctx, const unsigned char *message,
+		unsigned int len);
+void sha384_final(sha384_ctx *ctx, unsigned char *digest);
+void sha384(const unsigned char *message, unsigned int len,
+		unsigned char *digest);
+
+void sha512_init(sha512_ctx *ctx);
+void sha512_update(sha512_ctx *ctx, const unsigned char *message,
+		unsigned int len);
+void sha512_final(sha512_ctx *ctx, unsigned char *digest);
+void sha512(const unsigned char *message, unsigned int len,
+		unsigned char *digest);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* !SHA2_H */
+

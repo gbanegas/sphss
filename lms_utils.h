@@ -66,4 +66,8 @@ void serialize_lms_signature(lms_signature *from, unsigned char *to);
  */
 void deserialize_lms_signature(unsigned char *from, lms_signature *to);
 
+void serialize_lmsots_signature(lmots_signature *from, unsigned char *to);
+
+void deserialize_lmsots_signature(unsigned char *from, lmots_signature *to);
+
 #endif /* LMS_UTILS_H_ */

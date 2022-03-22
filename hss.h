@@ -20,8 +20,10 @@
 #include "lms_ots.h"
 #include "lms_utils.h"
 #include "lms.h"
-#include "fips202.h"
+#include "fips180.h"
 #include "sphss_defs.h"
+
+void deserialize_hss_signature(unsigned char *from, hss_signature *to);
 
 /**
  * Key Generation of HSS. As it is defined in https://datatracker.ietf.org/doc/html/rfc8554#section-6.1

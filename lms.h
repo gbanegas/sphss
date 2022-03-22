@@ -26,12 +26,12 @@
 /**
  * Generation of the LMS private key
  */
-void keygen_lms_private_key(lms_private_key *sk);
+void keygen_lms_private_key(unsigned char *sk);
 
 /**
  * Generation of the LMS public key
  */
-void keygen_lms_public_key(lms_private_key *sk, lms_public_key *pk);
+void keygen_lms_public_key(unsigned char *sk, unsigned char *pk);
 
 /**
  * Key Generation of LMS
@@ -44,11 +44,16 @@ int lms_keygen(unsigned char *sk, unsigned char *pk);
 int lms_sign_internal(const unsigned char *message, const size_t input_size,
 		lms_private_key *sk, lms_signature *sig);
 
+
 /**
  * Signing procedure of a message using the LMS. The SK should be in the format https://datatracker.ietf.org/doc/html/rfc8554#section-5.2
  * the signature will be in the format proposed in https://datatracker.ietf.org/doc/html/rfc8554#section-5.4
  */
 int lms_sign(const unsigned char *message, const size_t input_size,
+		unsigned char *sk, unsigned char *signature);
+
+
+int lms_sign_internal_f(const unsigned char *message, const size_t input_size,
 		unsigned char *sk, unsigned char *signature);
 
 /**
@@ -65,12 +70,16 @@ int lms_verify(const unsigned char *message, const size_t input_size,
 int lms_verify_internal(const unsigned char *message, const size_t input_size,
 		lms_public_key *pk, lms_signature *signature);
 
+int lms_verify_internal_f(const unsigned char *message, const size_t input_size,
+		unsigned char *public_key, unsigned char *sig);
+
+
 /**
  * Check if the key is exhausted.
  * it checks if ((1 << H) - q) == 0
  * if 1 the key is exhausted
  * if 0 the key still alive
  */
-int is_exhausted(lms_private_key *key);
+int is_exhausted(unsigned char *key);
 
 #endif /* LMS_H_ */

@@ -12,8 +12,12 @@
 //#include "fips202.h"
 #include "fips180.h"
 
+void hash_init(sha256_ctx *ctx);
+
 void hash(const unsigned char *input, size_t inlen, unsigned char *output);
 
 void hash_update(const unsigned char *input, const size_t inlen,
-		sha2_256_ctx *ctx);
+		sha256_ctx *ctx);
+
+void hash_finish(sha256_ctx *ctx, unsigned char *output);
 #endif /* HASH_H_ */

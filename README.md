@@ -14,13 +14,13 @@ COMPILE_FLAGS = -DLMOTS_SHA256_N32_W8 -DLMS_SHA256_M32_H5
 ```
 The other options for LMOTS are:
 ```
--DLMOTS_SHA256_N32_W1 
+-DLMOTS_SHA256_N32_W1
 
 -DLMOTS_SHA256_N32_W2
 
--DLMOTS_SHA256_N32_W4 
+-DLMOTS_SHA256_N32_W4
 
--DLMOTS_SHA256_N32_W8 
+-DLMOTS_SHA256_N32_W8
 ```
 The other options for LMS are:
 ```
@@ -43,16 +43,16 @@ foo@bar: ./sphss
 ## Tests
 
 ## Benchmark
-Using cpucycle from [Supercop](https://bench.cr.yp.to/supercop.html), we reach the following values for COMPILE_FLAGS = -DLMOTS_SHA256_N32_W8 -DLMS_SHA256_M32_H5 (in an Intel(R) Core(TM) i7-10610U CPU @ 1.80GHz):
+Using cpucycle from [Supercop](https://bench.cr.yp.to/supercop.html), we reach the following values for COMPILE_FLAGS = -DLMOTS_SHA256_N32_W8 -DLMS_SHA256_M32_H5 (in an Intel(R) Core(TM) i7-10610U CPU @ 1.80GHz, gcc 11.2.0):
 
 ```
-median lms-ots keygen: 7893243 cycles 
-median lms-ots sign: 3907529 cycles 
-median lms-ots verify: 3990474 cycles 
-median lms keygen: 294766029 cycles 
-median lms sign: 300630336 cycles 
-median lms verify: 4644142 cycles 
-median hss keygen: 838803787 cycles 
-median hss sign: 283486422 cycles 
-median hss verify: 8780359 cycles 
+median lms-ots keygen: 5616362 cycles
+median lms-ots sign: 2786342 cycles
+median lms-ots verify: 2868226 cycles
+median lms keygen: 183550217 cycles
+median lms sign: 184972134 cycles
+median lms verify: 2938331 cycles
+median hss keygen: 549353814 cycles
+median hss sign: 184756800 cycles
+median hss verify: 5838829 cycles
 ```
