@@ -40,7 +40,7 @@ typedef struct lms_path {
 
 typedef struct lms_signature {
 	unsigned int q;
-	lmots_signature lmots_sig;
+	unsigned char lmots_sig[CRYPTO_BYTES_LMOS];
 	lms_algorithm_type lms_type;
 	lms_path path[H];
 } lms_signature;
@@ -65,14 +65,14 @@ typedef struct lms_private_key {
 typedef struct hss_private_key {
 	unsigned int L;
 	int remain;
-	lms_private_key priv[LEVELS];
-	lms_public_key pubs[LEVELS];
-	lms_signature sigs[LEVELS];
+	unsigned char priv[LEVELS][LMS_PRIV_KEY_SIZE];
+	unsigned char pubs[LEVELS][LMS_PUB_KEY_SIZE];
+	unsigned char sigs[LEVELS][CRYPTO_BYTES_LMS];
 } hss_private_key;
 
 typedef struct hss_public_key {
 	unsigned int L;
-	lms_public_key pub;
+	unsigned char pub[LMS_PUB_KEY_SIZE];
 } hss_public_key;
 
 typedef struct signed_public_key {
@@ -82,9 +82,9 @@ typedef struct signed_public_key {
 
 typedef struct hss_signature {
 	unsigned int Nspk;
-	lms_signature signed_pub_key[LEVELS];
-	lms_public_key pub_key[LEVELS];
-	lms_signature sig;
+	unsigned char signed_pub_key[LEVELS][CRYPTO_BYTES_LMS];
+	unsigned char pub_key[LEVELS][LMS_PUB_KEY_SIZE];
+	unsigned char sig[CRYPTO_BYTES_LMS];
 } hss_signature;
 
 #endif /* SPHSS_DEFS_H_ */

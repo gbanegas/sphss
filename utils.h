@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 
+#include "lms_utils.h"
 #include "params.h"
 #include "sphss_defs.h"
 
@@ -28,6 +29,9 @@ void print_hex(unsigned char *array, unsigned int inlen);
 
 void print_lmots_signature(lmots_signature *sig);
 
+void print_lmots_signature_pure(unsigned char *sig);
+void print_lmots_public_key_pure(unsigned char *pk);
+
 /**
  * Print the lms_signature in hex.
  */
@@ -35,9 +39,16 @@ void print_lmots_signature(lmots_signature *sig);
 void print_lms_signature(lms_signature *sig);
 
 /**
+ * Print the lms_signature in hex.
+ */
+
+void print_lms_signature_pure(unsigned char *sig);
+
+/**
  * Print the lms_public_key in hex.
  */
 void print_lms_pub_key(lms_public_key *sk);
+void print_lms_pub_key_pure(unsigned char *pk);
 
 /**
  * Print the lms_private_key in hex.
@@ -54,10 +65,14 @@ void print_hss_signature(hss_signature *sig);
 
 void print_hss_private_key(hss_private_key *sk);
 
+void print_hss_private_key_pure(unsigned char *sk);
+
 /**
  * Print the hss_public_key in hex.
  */
 
 void print_hss_public_key(hss_public_key *pk);
+
+void print_hss_public_key_pure(unsigned char *pk);
 
 #endif

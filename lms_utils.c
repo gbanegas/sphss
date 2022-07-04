@@ -6,6 +6,18 @@
  */
 #include "lms_utils.h"
 
+void serialize_lmsots_signature(lmots_signature *from, unsigned char *to) {
+	ull_to_bytes(to, from->alg_type, 4);
+	memcpy(to + 4, from->C, 32);
+	memcpy(to + 36, from->y, P * 32);
+}
+
+void deserialize_lmsots_signature(unsigned char *from, lmots_signature *to) {
+	to->alg_type = bytes_to_ull(from, 4);
+	memcpy(to->C, from + 4, 32);
+	memcpy(to->y, from + 36, P * 32);
+}
+
 void concat_hash_value(const uint_fast8_t *S, const uint_fast8_t *tmp,
 		uint16_t i, uint8_t j, uint_fast8_t *result) {
 	memcpy(result, S, 20);
@@ -74,21 +86,24 @@ void serialize_lms_public_key(lms_public_key *from, unsigned char *to) {
 
 void serialize_lms_signature(lms_signature *from, unsigned char *to) {
 	ull_to_bytes(to, from->q, 4);
-	ull_to_bytes(to + 4, from->lmots_sig.alg_type, 4);
-	memcpy(to + 8, from->lmots_sig.C, 32);
-	memcpy(to + 40, from->lmots_sig.y, 32 * P);
-	ull_to_bytes(to + (40 + (32 * P)), from->lms_type, 4);
+	ull_to_bytes(to + 4, LMOTS_ALG_TYPE, 4);
+	memcpy(to + 8, &from->lmots_sig[0] + 4, 32);
+	memcpy(to + 40, &from->lmots_sig[0] + 36, 32 * P);
+	ull_to_bytes(to + (44 + (32 * P)), from->lms_type, 4);
 	for (int i = 0; i < H; i++) {
-		memcpy(to + (44 + (32 * P) + (i * 32)), from->path[i].node, 32);
+		memcpy(to + (48 + (32 * P) + (i * 32)), from->path[i].node, 32);
 	}
 
 }
 
 void deserialize_lms_signature(unsigned char *from, lms_signature *to) {
 	to->q = bytes_to_ull(from, 4);
-	to->lmots_sig.alg_type = bytes_to_ull(from + 4, 4);
-	memcpy(to->lmots_sig.C, from + 8, 32);
-	memcpy(to->lmots_sig.y, from + 40, 32 * P);
+	memcpy(to->lmots_sig, from + 4, 4);
+	//to->lmots_sig.alg_type = bytes_to_ull(from + 4, 4);
+	memcpy(to->lmots_sig + 4, from + 8, 32);
+	//memcpy(to->lmots_sig.C, from + 8, 32);
+	memcpy(to->lmots_sig + 36, from + 40, 32 * P);
+	//memcpy(to->lmots_sig.y, from + 40, 32 * P);
 	to->lms_type = bytes_to_ull(from + (40 + (32 * P)), 4);
 	for (int i = 0; i < H; i++) {
 		memcpy(to->path[i].node, from + (44 + (32 * P) + (i * 32)), 32);
