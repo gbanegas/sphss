@@ -22,8 +22,8 @@
 /**
  * Concatenation of S, tmp, i in big endian, and j.
  */
-void concat_hash_value(const uint_fast8_t *S, const uint_fast8_t *tmp,
-		uint16_t i, uint8_t j, uint_fast8_t *result);
+void concat_hash_value(const uint8_t *S, const uint8_t *tmp,
+		uint16_t i, uint8_t j, uint8_t *result);
 
 /**
  * Function to get the ith bit from Q as define in https://datatracker.ietf.org/doc/html/rfc8554#section-3.1.3

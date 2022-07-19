@@ -294,7 +294,7 @@ void recover_lmots_public_key(lms_public_key *pk, lms_signature *sig,
 
 	sha256_ctx ctx;
 	uint16_t D_public = 0x8080;
-	uint_fast8_t tmp_concat[22] = { 0 };
+	uint8_t tmp_concat[22] = { 0 };
 	sha256_init(&ctx);
 	//sha2_256_init(&ctx, pk_tc);
 
@@ -388,7 +388,7 @@ void recover_lmots_public_key_f(unsigned char *pk, unsigned char *sig,
 
 	sha256_ctx ctx;
 	uint16_t D_public = 0x8080;
-	uint_fast8_t tmp_concat[22] = { 0 };
+	uint8_t tmp_concat[22] = { 0 };
 	sha256_init(&ctx);
 	//sha2_256_init(&ctx, pk_tc);
 
