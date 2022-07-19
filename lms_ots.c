@@ -19,14 +19,14 @@ void gen_lmots_public_key(unsigned char *sk, unsigned char *pk) {
 	ull_to_bytes(sk, LMOTS_ALG_TYPE, 4);
 	ull_to_bytes(pk, LMOTS_ALG_TYPE, 4);
 	uint16_t D_public = 0x8080;
-	uint_fast8_t tmp[32] = { 0 };
+	uint8_t tmp[32] = { 0 };
 	sha256_ctx ctx;
 	sha256_init(&ctx);
 	memcpy(tmp, sk + 4, 20);
 	memcpy(tmp + 20, &D_public, 2);
 	sha256_update(&ctx, tmp, 22);
 
-	uint_fast8_t tmp_concatenated[55] = { 0 };
+	uint8_t tmp_concatenated[55] = { 0 };
 	memset(tmp, 0, 32);
 
 	for (int i = 0; i < P; i++) {
@@ -144,7 +144,7 @@ int lms_ots_verify(unsigned char *message, size_t input_size, unsigned char *pk,
 
 	sha256_ctx ctx;
 	uint16_t D_public = 0x8080;
-	uint_fast8_t tmp_concat[22] = { 0 };
+	uint8_t tmp_concat[22] = { 0 };
 	sha256_init(&ctx);
 
 	memcpy(tmp_concat, pk + 36, 20);

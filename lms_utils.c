@@ -18,8 +18,8 @@ void deserialize_lmsots_signature(unsigned char *from, lmots_signature *to) {
 	memcpy(to->y, from + 36, P * 32);
 }
 
-void concat_hash_value(const uint_fast8_t *S, const uint_fast8_t *tmp,
-		uint16_t i, uint8_t j, uint_fast8_t *result) {
+void concat_hash_value(const uint8_t *S, const uint8_t *tmp,
+		uint16_t i, uint8_t j, uint8_t *result) {
 	memcpy(result, S, 20);
 	ull_to_bytes(result + 20, i, 2);
 	memcpy(result + 22, &j, 1);
