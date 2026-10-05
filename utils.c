@@ -220,8 +220,8 @@ void print_hss_private_key(hss_private_key *sk) {
 
 	for (int i = 0; i < sk->L; i++) {
 		printf("Level: %d\n", i);
-		print_lms_priv_key(&sk->priv[i]);
-		print_lms_pub_key(&sk->pubs[i]);
+		//print_lms_priv_key(&sk->priv[i]);
+		//print_lms_pub_key(&sk->pubs[i]);
 
 	}
 	/*for (int i = 0; i < sk->L-1; i++) {
